@@ -1,6 +1,6 @@
 import type { LearningWeek } from "@/components/lpo/learning-path-results"
 
-// Knowledge Components that power the system
+// Knowledge Components that power the system (13 categories)
 export const knowledgeComponents = [
   { id: "kc-1", name: "Linear Algebra", category: "foundation" },
   { id: "kc-2", name: "Probability", category: "foundation" },
@@ -17,10 +17,31 @@ export const knowledgeComponents = [
   { id: "kc-13", name: "Feature Engineering", category: "applied" },
 ]
 
+// KC nodes for visualization (with level-based grouping)
+export const kcNodes = [
+  { id: "kc-1", label: "Linear Algebra", level: "foundations" },
+  { id: "kc-2", label: "Probability", level: "foundations" },
+  { id: "kc-3", label: "Statistics Basics", level: "foundations" },
+  { id: "kc-4", label: "Gradient Descent", level: "core" },
+  { id: "kc-5", label: "Loss Functions", level: "core" },
+  { id: "kc-6", label: "Optimization", level: "core" },
+  { id: "kc-7", label: "Regression", level: "supervised" },
+  { id: "kc-8", label: "Classification", level: "supervised" },
+  { id: "kc-9", label: "Decision Trees", level: "supervised" },
+  { id: "kc-10", label: "Ensemble Methods", level: "supervised" },
+  { id: "kc-11", label: "Overfitting", level: "evaluation" },
+  { id: "kc-12", label: "Regularization", level: "evaluation" },
+  { id: "kc-13", label: "Bias-Variance", level: "evaluation" },
+  { id: "kc-14", label: "Cross-Validation", level: "evaluation" },
+  { id: "kc-15", label: "Feature Engineering", level: "advanced" },
+  { id: "kc-16", label: "Model Selection", level: "advanced" },
+]
+
 // Pipeline statistics for the demo
 export const pipelineStats = {
   learningSegments: 261,
   knowledgeComponents: 23,
+  kcsExtracted: 16,
   kcLinks: 1101,
   dependencyEdges: 26,
   candidatePaths: 5,
