@@ -1,21 +1,16 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
-import { HeroSection } from "@/components/lpo/hero-section"
-import { InputPanel } from "@/components/lpo/input-panel"
-import { MaterialsUpload } from "@/components/lpo/materials-upload"
-import { GeneratingLoader } from "@/components/lpo/generating-loader"
-import { LearningPathResults, type LearningWeek } from "@/components/lpo/learning-path-results"
-import { WhyThisOrder } from "@/components/lpo/why-this-order"
-import { RefinementControls } from "@/components/lpo/refinement-controls"
-import { DemandCapture } from "@/components/lpo/demand-capture"
-import { BehindThePath } from "@/components/lpo/behind-the-path"
-import { KCDependencyViz } from "@/components/lpo/kc-dependency-viz"
-import { CandidatePathsCard } from "@/components/lpo/candidate-paths-card"
-import { LearningGainCard } from "@/components/lpo/learning-gain-card"
+import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Sparkles } from "lucide-react"
+import { Sparkles, ArrowRight } from "lucide-react"
+import { WizardShell } from "@/components/lpo/wizard-shell"
+import { StepGoalPreferences } from "@/components/lpo/step-goal-preferences"
+import { StepMaterials } from "@/components/lpo/step-materials"
+import { StepExtractedConcepts } from "@/components/lpo/step-extracted-concepts"
+import { StepLearningPath } from "@/components/lpo/step-learning-path"
+import { StepEarlyAccess } from "@/components/lpo/step-early-access"
 import { getPathForRefinements, getPathTitle, defaultPath } from "@/lib/mock-learning-paths"
+import type { LearningWeek } from "@/components/lpo/learning-path-results"
 
 interface UploadedFile {
   name: string
@@ -23,7 +18,15 @@ interface UploadedFile {
   status: "uploading" | "processing" | "complete"
 }
 
-type AppState = "hero" | "input" | "generating" | "results"
+type AppState = "hero" | "step-1" | "step-2" | "step-3" | "step-4" | "step-5"
+
+const wizardSteps = [
+  { id: "goal", label: "Goals" },
+  { id: "materials", label: "Materials" },
+  { id: "concepts", label: "Concepts" },
+  { id: "path", label: "Path" },
+  { id: "access", label: "Access" },
+]
 
 export default function LPOPage() {
   // App state
@@ -42,16 +45,9 @@ export default function LPOPage() {
   // Results state
   const [activeRefinements, setActiveRefinements] = useState<string[]>([])
   const [learningPath, setLearningPath] = useState<LearningWeek[]>(defaultPath)
-  
-  // Refs for scrolling
-  const inputSectionRef = useRef<HTMLDivElement>(null)
-  const resultsSectionRef = useRef<HTMLDivElement>(null)
 
   const handleGetStarted = () => {
-    setAppState("input")
-    setTimeout(() => {
-      inputSectionRef.current?.scrollIntoView({ behavior: "smooth" })
-    }, 100)
+    setAppState("step-1")
   }
 
   const handleSeeExample = () => {
@@ -63,48 +59,16 @@ export default function LPOPage() {
     setUploadedFiles([
       { name: "ml_interview_topics.pdf", size: "245 KB", status: "complete" }
     ])
-    setAppState("input")
-    setTimeout(() => {
-      inputSectionRef.current?.scrollIntoView({ behavior: "smooth" })
-    }, 100)
+    setAppState("step-1")
   }
-
-  const handleGenerate = () => {
-    setAppState("generating")
-  }
-
-  const handleGenerationComplete = useCallback(() => {
-    setLearningPath(getPathForRefinements(activeRefinements))
-    setAppState("results")
-    setTimeout(() => {
-      resultsSectionRef.current?.scrollIntoView({ behavior: "smooth" })
-    }, 100)
-  }, [activeRefinements])
 
   const handleToggleRefinement = (id: string) => {
     const newRefinements = activeRefinements.includes(id)
       ? activeRefinements.filter((r) => r !== id)
-      : [id] // Only one refinement at a time for simplicity
+      : [id]
     
     setActiveRefinements(newRefinements)
     setLearningPath(getPathForRefinements(newRefinements))
-  }
-
-  const handleToggleComplete = (weekIndex: number, topicIndex: number) => {
-    setLearningPath((prev) =>
-      prev.map((week, wIdx) =>
-        wIdx === weekIndex
-          ? {
-              ...week,
-              topics: week.topics.map((topic, tIdx) =>
-                tIdx === topicIndex
-                  ? { ...topic, completed: !topic.completed }
-                  : topic
-              ),
-            }
-          : week
-      )
-    )
   }
 
   const handleStartOver = () => {
@@ -117,12 +81,9 @@ export default function LPOPage() {
     setManualTopics("")
     setActiveRefinements([])
     setLearningPath(defaultPath)
-    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const canGenerate = goal.trim() !== "" && timeline !== "" && level !== ""
-
-  // Get display values for results
+  // Get display values
   const getLevelDisplay = (level: string) => {
     const labels: Record<string, string> = {
       "beginner": "Beginner",
@@ -158,17 +119,35 @@ export default function LPOPage() {
     return sources.length > 0 ? sources.join(" + ") : "default curriculum"
   }
 
+  const getCurrentStepIndex = () => {
+    const stepMap: Record<AppState, number> = {
+      "hero": -1,
+      "step-1": 0,
+      "step-2": 1,
+      "step-3": 2,
+      "step-4": 3,
+      "step-5": 4,
+    }
+    return stepMap[appState]
+  }
+
+  // Prepare learning path when moving to step 4
+  const prepareAndShowPath = useCallback(() => {
+    setLearningPath(getPathForRefinements(activeRefinements))
+    setAppState("step-4")
+  }, [activeRefinements])
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <button onClick={handleStartOver} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-semibold text-foreground text-lg">LPO</span>
-          </div>
+          </button>
           {appState !== "hero" && (
             <Button variant="ghost" size="sm" onClick={handleStartOver}>
               Start over
@@ -178,112 +157,102 @@ export default function LPOPage() {
       </header>
 
       {/* Main Content */}
-      <main>
-        {/* Hero Section - Always visible in hero state */}
+      <main className="flex-1 flex flex-col">
+        {/* Hero */}
         {appState === "hero" && (
-          <HeroSection onGetStarted={handleGetStarted} onSeeExample={handleSeeExample} />
-        )}
-
-        {/* Input Section */}
-        {(appState === "input" || appState === "results") && (
-          <section ref={inputSectionRef} className="py-12 md:py-16">
-            <div className="container mx-auto px-4">
-              <div className="max-w-2xl mx-auto space-y-6">
-                <InputPanel
-                  goal={goal}
-                  setGoal={setGoal}
-                  timeline={timeline}
-                  setTimeline={setTimeline}
-                  level={level}
-                  setLevel={setLevel}
-                  preferences={preferences}
-                  setPreferences={setPreferences}
-                />
-
-                <MaterialsUpload
-                  uploadedFiles={uploadedFiles}
-                  setUploadedFiles={setUploadedFiles}
-                  manualTopics={manualTopics}
-                  setManualTopics={setManualTopics}
-                />
-
-                {appState === "input" && (
-                  <Button
-                    size="lg"
-                    className="w-full h-12 text-base font-medium"
-                    disabled={!canGenerate}
-                    onClick={handleGenerate}
-                  >
-                    Generate my learning path
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="max-w-2xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border mb-8">
+                <Sparkles className="h-4 w-4 text-accent" />
+                <span className="text-sm text-muted-foreground">For self-directed learners</span>
+              </div>
+              
+              <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-6 text-balance">
+                Stop guessing what to study next.
+              </h1>
+              
+              <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto text-pretty">
+                Generate a personalized AI/ML learning path from your goal, timeline, and materials.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button 
+                  size="lg" 
+                  onClick={handleGetStarted}
+                  className="min-w-[200px] h-12 text-base font-medium"
+                >
+                  Get started
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={handleSeeExample}
+                  className="min-w-[140px] h-12 text-base font-medium"
+                >
+                  See example
+                </Button>
               </div>
             </div>
-          </section>
+          </div>
         )}
 
-        {/* Generating Loader */}
-        {appState === "generating" && (
-          <GeneratingLoader onComplete={handleGenerationComplete} />
-        )}
+        {/* Wizard Steps */}
+        {appState !== "hero" && (
+          <WizardShell steps={wizardSteps} currentStep={getCurrentStepIndex()}>
+            {appState === "step-1" && (
+              <StepGoalPreferences
+                goal={goal}
+                setGoal={setGoal}
+                timeline={timeline}
+                setTimeline={setTimeline}
+                level={level}
+                setLevel={setLevel}
+                preferences={preferences}
+                setPreferences={setPreferences}
+                onNext={() => setAppState("step-2")}
+              />
+            )}
 
-        {/* Results Section */}
-        {appState === "results" && (
-          <section ref={resultsSectionRef} className="py-12 md:py-16 bg-secondary/30">
-            <div className="container mx-auto px-4">
-              <div className="max-w-3xl mx-auto space-y-6">
-                <LearningPathResults
-                  title={getPathTitle(timeline, activeRefinements)}
-                  timeline={getTimelineDisplay(timeline)}
-                  level={getLevelDisplay(level)}
-                  focus={getFocusDisplay(preferences)}
-                  basedOn={getBasedOnDisplay()}
-                  weeks={learningPath}
-                  onToggleComplete={handleToggleComplete}
-                />
+            {appState === "step-2" && (
+              <StepMaterials
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                manualTopics={manualTopics}
+                setManualTopics={setManualTopics}
+                onNext={() => setAppState("step-3")}
+                onSkip={() => setAppState("step-3")}
+              />
+            )}
 
-                {/* Intelligence showcase section */}
-                <BehindThePath />
-                
-                <div className="grid gap-6 md:grid-cols-2">
-                  <KCDependencyViz />
-                  <div className="space-y-6">
-                    <CandidatePathsCard />
-                    <LearningGainCard />
-                  </div>
-                </div>
+            {appState === "step-3" && (
+              <StepExtractedConcepts
+                onNext={prepareAndShowPath}
+              />
+            )}
 
-                <WhyThisOrder />
+            {appState === "step-4" && (
+              <StepLearningPath
+                title={getPathTitle(timeline, activeRefinements)}
+                timeline={getTimelineDisplay(timeline)}
+                level={getLevelDisplay(level)}
+                focus={getFocusDisplay(preferences)}
+                basedOn={getBasedOnDisplay()}
+                weeks={learningPath}
+                activeRefinements={activeRefinements}
+                onToggleRefinement={handleToggleRefinement}
+                onNext={() => setAppState("step-5")}
+              />
+            )}
 
-                <RefinementControls
-                  activeRefinements={activeRefinements}
-                  onToggleRefinement={handleToggleRefinement}
-                />
-
-                <DemandCapture />
-              </div>
-            </div>
-          </section>
+            {appState === "step-5" && (
+              <StepEarlyAccess
+                onBack={() => setAppState("step-4")}
+              />
+            )}
+          </WizardShell>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center">
-                <Sparkles className="h-3 w-3 text-primary-foreground" />
-              </div>
-              <span className="text-sm font-medium text-foreground">LPO</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Learning Path Optimizer — Built for self-directed learners
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
