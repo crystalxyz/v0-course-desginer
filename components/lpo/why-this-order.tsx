@@ -1,28 +1,28 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Lightbulb, ArrowRight, Layers, Clock, Star } from "lucide-react"
+import { Lightbulb, Brain, GitBranch, Layers, Clock } from "lucide-react"
 
 const reasons = [
   {
-    icon: ArrowRight,
-    title: "Prerequisites first",
-    description: "We prioritized foundational concepts that other topics depend on",
+    icon: Brain,
+    title: "Knowledge components identified",
+    description: "We extracted the core concepts from your materials and mapped them to a structured knowledge model",
+  },
+  {
+    icon: GitBranch,
+    title: "Prerequisite structure analyzed",
+    description: "We determined which concepts depend on others, ensuring you learn foundations before advanced topics",
   },
   {
     icon: Layers,
-    title: "Grouped related concepts",
-    description: "Tightly related topics are placed together for better retention",
+    title: "Learning segments grouped",
+    description: "Related content is organized around knowledge components for better retention and understanding",
   },
   {
     icon: Clock,
-    title: "Adapted to your timeline",
-    description: "The pace and depth are calibrated to your available time",
-  },
-  {
-    icon: Star,
-    title: "Relevance prioritized",
-    description: "The most important topics for your goals appear earlier",
+    title: "Optimized for your timeline",
+    description: "The sequence was selected from multiple candidates to maximize learning gain within your available time",
   },
 ]
 

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Clock, BookOpen, Target, FileText, CheckCircle2 } from "lucide-react"
+import { Clock, BookOpen, Target, FileText, CheckCircle2, Brain } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface LearningTopic {
@@ -10,6 +10,7 @@ export interface LearningTopic {
   reason: string
   estimatedTime: string
   completed?: boolean
+  knowledgeComponents?: string[]
 }
 
 export interface LearningWeek {
@@ -27,6 +28,23 @@ interface LearningPathResultsProps {
   onToggleComplete?: (weekIndex: number, topicIndex: number) => void
 }
 
+// KC badge color mapping
+const kcColors: Record<string, string> = {
+  "Linear Algebra": "bg-blue-500/10 text-blue-700 border-blue-200",
+  "Probability": "bg-blue-500/10 text-blue-700 border-blue-200",
+  "Gradient Descent": "bg-emerald-500/10 text-emerald-700 border-emerald-200",
+  "Loss Functions": "bg-emerald-500/10 text-emerald-700 border-emerald-200",
+  "Regression": "bg-amber-500/10 text-amber-700 border-amber-200",
+  "Classification": "bg-amber-500/10 text-amber-700 border-amber-200",
+  "Decision Boundary": "bg-amber-500/10 text-amber-700 border-amber-200",
+  "Overfitting": "bg-rose-500/10 text-rose-700 border-rose-200",
+  "Regularization": "bg-rose-500/10 text-rose-700 border-rose-200",
+  "Bias-Variance": "bg-rose-500/10 text-rose-700 border-rose-200",
+  "Cross-Validation": "bg-purple-500/10 text-purple-700 border-purple-200",
+  "Ensemble Methods": "bg-purple-500/10 text-purple-700 border-purple-200",
+  "Feature Engineering": "bg-purple-500/10 text-purple-700 border-purple-200",
+}
+
 export function LearningPathResults({
   title,
   timeline,
@@ -40,11 +58,19 @@ export function LearningPathResults({
     (acc, week) =>
       acc +
       week.topics.reduce((topicAcc, topic) => {
-        const hours = parseInt(topic.estimatedTime)
+        const hours = parseFloat(topic.estimatedTime)
         return topicAcc + (isNaN(hours) ? 0 : hours)
       }, 0),
     0
   )
+
+  // Count unique KCs across all topics
+  const allKCs = new Set<string>()
+  weeks.forEach(week => {
+    week.topics.forEach(topic => {
+      topic.knowledgeComponents?.forEach(kc => allKCs.add(kc))
+    })
+  })
 
   return (
     <Card className="border-border shadow-sm">
@@ -70,6 +96,10 @@ export function LearningPathResults({
               <Badge variant="secondary" className="font-normal">
                 <FileText className="h-3 w-3 mr-1" />
                 {basedOn}
+              </Badge>
+              <Badge variant="outline" className="font-normal bg-accent/5 border-accent/20 text-accent">
+                <Brain className="h-3 w-3 mr-1" />
+                {allKCs.size} knowledge components
               </Badge>
             </div>
           </div>
@@ -110,6 +140,25 @@ export function LearningPathResults({
                         <p className="text-sm text-muted-foreground mb-2">
                           {topic.reason}
                         </p>
+                        
+                        {/* Knowledge Component badges */}
+                        {topic.knowledgeComponents && topic.knowledgeComponents.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {topic.knowledgeComponents.map((kc) => (
+                              <Badge
+                                key={kc}
+                                variant="outline"
+                                className={cn(
+                                  "text-[10px] px-1.5 py-0 font-medium",
+                                  kcColors[kc] || "bg-secondary text-secondary-foreground"
+                                )}
+                              >
+                                {kc}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Clock className="h-3 w-3" />
                           {topic.estimatedTime}
@@ -119,7 +168,7 @@ export function LearningPathResults({
                         <button
                           onClick={() => onToggleComplete(weekIndex, topicIndex)}
                           className={cn(
-                            "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                            "px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex-shrink-0",
                             topic.completed
                               ? "bg-accent/10 text-accent hover:bg-accent/20"
                               : "bg-secondary text-secondary-foreground hover:bg-secondary/80"

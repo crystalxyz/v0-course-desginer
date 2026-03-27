@@ -9,6 +9,10 @@ import { LearningPathResults, type LearningWeek } from "@/components/lpo/learnin
 import { WhyThisOrder } from "@/components/lpo/why-this-order"
 import { RefinementControls } from "@/components/lpo/refinement-controls"
 import { DemandCapture } from "@/components/lpo/demand-capture"
+import { BehindThePath } from "@/components/lpo/behind-the-path"
+import { KCDependencyViz } from "@/components/lpo/kc-dependency-viz"
+import { CandidatePathsCard } from "@/components/lpo/candidate-paths-card"
+import { LearningGainCard } from "@/components/lpo/learning-gain-card"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Sparkles } from "lucide-react"
 import { getPathForRefinements, getPathTitle, defaultPath } from "@/lib/mock-learning-paths"
@@ -238,6 +242,17 @@ export default function LPOPage() {
                   weeks={learningPath}
                   onToggleComplete={handleToggleComplete}
                 />
+
+                {/* Intelligence showcase section */}
+                <BehindThePath />
+                
+                <div className="grid gap-6 md:grid-cols-2">
+                  <KCDependencyViz />
+                  <div className="space-y-6">
+                    <CandidatePathsCard />
+                    <LearningGainCard />
+                  </div>
+                </div>
 
                 <WhyThisOrder />
 
