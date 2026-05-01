@@ -450,7 +450,7 @@ export default function ExportPage() {
                     : "Your file is ready for download"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4">
+              <CardContent className="pt-4 space-y-4">
                 {selectedFormat === "link" ? (
                   <div className="space-y-4">
                     <div className="flex gap-2">
@@ -478,11 +478,21 @@ export default function ExportPage() {
                       <Download className="mr-2 h-4 w-4" />
                       Download {selectedFormat === "markdown" ? ".md" : ".json"}
                     </Button>
-                    <Button variant="ghost" onClick={() => setExportComplete(false)}>
-                      Export another format
-                    </Button>
                   </div>
                 )}
+                <div className="pt-2 border-t border-border flex justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setPlanFastForward()
+                      router.push("/new/plan")
+                    }}
+                  >
+                    <ArrowLeft className="mr-2 h-3.5 w-3.5" />
+                    Back to plan
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
