@@ -130,51 +130,73 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Featured Example */}
+        {/* Example Courses */}
         <section className="border-t border-border py-16 md:py-24 px-4">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground text-center mb-3">
-              See a real example.
+              See real examples.
             </h2>
-            <p className="text-sm text-muted-foreground text-center mb-10">
-              A pre-built 14-week graduate ML Systems course covering distributed training, memory optimization, and LLM serving.
+            <p className="text-sm text-muted-foreground text-center mb-10 max-w-xl mx-auto">
+              Two pre-built courses, ready to browse end-to-end.
             </p>
 
-            <Link
-              href="/sample?course=ml-systems"
-              className="group block border border-border rounded-lg overflow-hidden bg-card hover:shadow-md hover:border-primary/40 transition-all p-6"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="h-9 w-9 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center">
-                  <BookOpen className="h-4 w-4 text-accent" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Link
+                href="/sample?course=ml-systems"
+                className="group block border border-border rounded-lg overflow-hidden bg-card hover:shadow-md hover:border-primary/40 transition-all p-6"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-9 w-9 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center">
+                    <BookOpen className="h-4 w-4 text-accent" />
+                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Graduate seminar
+                  </span>
                 </div>
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                  Graduate seminar
-                </span>
-              </div>
-              <h3 className="text-base font-semibold text-foreground mb-1.5">
-                Machine Learning Systems
-              </h3>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                Built from 16 papers on distributed training, parallelism, memory optimization, and LLM serving. Includes a concept dependency graph and 6 alternative learning-path orderings.
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">14 weeks</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">Graduate</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">30 concepts</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">6 paths</span>
-              </div>
-              <div className="flex items-center gap-1 mt-4 text-xs text-primary font-medium group-hover:gap-2 transition-all">
-                View course <ArrowRight className="h-3 w-3" />
-              </div>
-            </Link>
+                <h3 className="text-base font-semibold text-foreground mb-1.5">
+                  Machine Learning Systems
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                  Built from 16 papers on distributed training, parallelism, memory optimization, and LLM serving. Includes a concept dependency graph and 6 alternative learning-path orderings.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">14 weeks</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">Graduate</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">30 concepts</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">6 paths</span>
+                </div>
+                <div className="flex items-center gap-1 mt-4 text-xs text-primary font-medium group-hover:gap-2 transition-all">
+                  View course <ArrowRight className="h-3 w-3" />
+                </div>
+              </Link>
 
-            <div className="mt-4 text-center">
               <Link
                 href="/sample?course=calculus"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+                className="group block border border-border rounded-lg overflow-hidden bg-card hover:shadow-md hover:border-primary/40 transition-all p-6"
               >
-                or browse the Calculus I example
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Intro undergrad
+                  </span>
+                </div>
+                <h3 className="text-base font-semibold text-foreground mb-1.5">
+                  Calculus I
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                  Built from an 8-chapter undergraduate calculus textbook. Limits, derivatives, integrals, differential equations, and series — sequenced with prerequisite-aware weekly readings.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">14 weeks</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">Intro</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">8 chapters</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">10 paths</span>
+                </div>
+                <div className="flex items-center gap-1 mt-4 text-xs text-primary font-medium group-hover:gap-2 transition-all">
+                  View course <ArrowRight className="h-3 w-3" />
+                </div>
               </Link>
             </div>
           </div>
