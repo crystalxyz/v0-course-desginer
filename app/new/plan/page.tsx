@@ -10,7 +10,6 @@ import {
   Share2,
   RefreshCw,
   Loader2,
-  Network,
   Calendar,
   Target,
   Check,
@@ -18,7 +17,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ConceptGraph } from "@/components/course/concept-graph"
+
 import { WeekSchedule } from "@/components/course/week-schedule"
 import { OutcomesTracker } from "@/components/course/outcomes-tracker"
 import { MaterialsPanel } from "@/components/course/materials-panel"
@@ -295,11 +294,7 @@ export default function CoursePlanPage() {
         {/* Mobile: Tabs */}
         <div className="lg:hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="graph" className="text-xs">
-                <Network className="h-3 w-3 mr-1" />
-                Graph
-              </TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="schedule" className="text-xs">
                 <Calendar className="h-3 w-3 mr-1" />
                 Schedule
@@ -309,16 +304,6 @@ export default function CoursePlanPage() {
                 Outcomes
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="graph" className="h-[500px]">
-              <ConceptGraph
-                concepts={conceptsWithWeeks}
-                materials={currentMaterials}
-                gapConcepts={gapConceptNames}
-                onConceptClick={handleConceptClick}
-                hoverState={hoverState}
-                onHoverChange={handleHoverChange}
-              />
-            </TabsContent>
             <TabsContent value="schedule" className="h-[600px]">
               <WeekSchedule
                 weeks={plan?.weeks || sampleWeeks}
@@ -337,28 +322,10 @@ export default function CoursePlanPage() {
           </Tabs>
         </div>
 
-        {/* Desktop: 3-Panel */}
+        {/* Desktop: 2-Panel */}
         <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-[calc(100vh-280px)]">
-          {/* Left: Concept Graph */}
-          <div className="col-span-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Network className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-sm font-medium text-foreground">Prerequisite Graph</h2>
-            </div>
-            <div className="h-[calc(100%-32px)]">
-              <ConceptGraph
-                concepts={conceptsWithWeeks}
-                materials={currentMaterials}
-                gapConcepts={gapConceptNames}
-                onConceptClick={handleConceptClick}
-                hoverState={hoverState}
-                onHoverChange={handleHoverChange}
-              />
-            </div>
-          </div>
-
-          {/* Center: Week Schedule */}
-          <div className="col-span-5">
+          {/* Left: Week Schedule */}
+          <div className="col-span-8">
             <div className="flex items-center gap-2 mb-3">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <h2 className="text-sm font-medium text-foreground">Weekly Schedule</h2>
@@ -378,7 +345,7 @@ export default function CoursePlanPage() {
           </div>
 
           {/* Right: Outcomes/Materials/Concept Detail */}
-          <div className="col-span-3">
+          <div className="col-span-4">
             {/* Tab Switcher */}
             <div className="flex items-center gap-2 mb-3">
               <Tabs value={rightPanelTab} onValueChange={(v) => setRightPanelTab(v as typeof rightPanelTab)} className="w-full">
