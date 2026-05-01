@@ -168,6 +168,15 @@ export default function HomePage() {
                 View course <ArrowRight className="h-3 w-3" />
               </div>
             </Link>
+
+            <div className="mt-4 text-center">
+              <Link
+                href="/sample?course=calculus"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+              >
+                or browse the Calculus I example
+              </Link>
+            </div>
           </div>
         </section>
 

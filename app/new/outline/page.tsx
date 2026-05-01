@@ -326,15 +326,30 @@ export default function OutlinePage() {
 
   const handleAddWeek = useCallback(() => {
     if (!outline) return
-    
+
+    // Use max+1 instead of length+1 to be defensive against renumbering races
+    // after splits/merges/drops.
+    const nextNum = outline.weeks.reduce((m, w) => Math.max(m, w.week), 0) + 1
+
     const newWeek: OutlineWeek = {
-      week: outline.weeks.length + 1,
-      topic: "New Week",
-      description: "Enter topic description",
+      week: nextNum,
+      topic: "",
+      description: "",
       pinnedMaterialIds: [],
     }
-    
+
     setOutline({ ...outline, weeks: [...outline.weeks, newWeek] })
+    // Drop straight into edit mode so the user doesn't have to hunt for the
+    // new card and click its topic — that click was getting eaten on the
+    // draggable card.
+    setEditingWeek(nextNum)
+    setEditValues({ topic: "", description: "" })
+
+    // Scroll into view on the next tick.
+    setTimeout(() => {
+      const el = document.getElementById(`outline-week-${nextNum}`)
+      el?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 50)
   }, [outline])
 
   const handleRegenerate = useCallback(async () => {
@@ -536,10 +551,12 @@ export default function OutlinePage() {
                   return (
                     <Card
                       key={week.week}
+                      id={`outline-week-${week.week}`}
                       className={cn(
                         "border-border transition-all",
                         isDragOver && "ring-2 ring-primary bg-primary/5",
-                        draggedWeek === week.week && "opacity-50"
+                        draggedWeek === week.week && "opacity-50",
+                        isEditing && "ring-2 ring-primary"
                       )}
                       draggable={!isEditing}
                       onDragStart={() => handleDragStart(week.week)}

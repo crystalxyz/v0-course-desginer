@@ -47,36 +47,92 @@ export default function MaterialsUploadPage() {
     ? "ml-systems"
     : "generic"
 
+  // Per-material processing sub-status, e.g. "Extracting text from page 4 of 12…"
+  // Kept in component state (not on the CourseMaterial itself) so it doesn't
+  // pollute the persisted shape.
+  const [processingDetail, setProcessingDetail] = useState<Record<string, string>>({})
+
   const simulateUpload = useCallback(
     (fileName: string, template: CourseTemplate) => {
+      const id = `mat-${Date.now()}-${Math.random().toString(36).slice(2)}`
       const newMaterial: CourseMaterial = {
-        id: `mat-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        id,
         name: fileName,
         size: `${Math.floor(Math.random() * 3000 + 500)} KB`,
         status: "uploading",
         tag: "core",
+        extractedConcepts: [],
       }
 
       setMaterials((prev) => [...prev, newMaterial])
 
-      setTimeout(() => {
-        setMaterials((prev) =>
-          prev.map((m) =>
-            m.id === newMaterial.id ? { ...m, status: "processing" as const } : m
-          )
-        )
-      }, 600)
+      // Plausible page count for the sub-status counter.
+      const pageCount = Math.floor(Math.random() * 16) + 8 // 8–23
+      const concepts = pickConceptsForFile(fileName, template)
 
+      // Step 1: upload finishes (~500ms)
       setTimeout(() => {
-        const extractedConcepts = pickConceptsForFile(fileName, template)
         setMaterials((prev) =>
-          prev.map((m) =>
-            m.id === newMaterial.id
-              ? { ...m, status: "complete" as const, extractedConcepts }
-              : m
-          )
+          prev.map((m) => (m.id === id ? { ...m, status: "processing" as const } : m))
         )
-      }, 1800)
+        setProcessingDetail((d) => ({ ...d, [id]: "Extracting text from PDF…" }))
+      }, 500)
+
+      // Step 2: page-by-page text extraction
+      let page = 1
+      const extractTick = setInterval(() => {
+        page = Math.min(page + 1, pageCount)
+        setProcessingDetail((d) => ({
+          ...d,
+          [id]: `Extracting text from page ${page} of ${pageCount}…`,
+        }))
+        if (page >= pageCount) clearInterval(extractTick)
+      }, 110)
+
+      // Step 3: switch to concept extraction phase, stream concepts in
+      const conceptStart = 500 + pageCount * 110 // when text extraction wraps
+      setTimeout(() => {
+        clearInterval(extractTick)
+        setProcessingDetail((d) => ({
+          ...d,
+          [id]: "Identifying knowledge components…",
+        }))
+
+        let i = 0
+        const conceptTick = setInterval(() => {
+          if (i >= concepts.length) {
+            clearInterval(conceptTick)
+            // Step 4: complete
+            setMaterials((prev) =>
+              prev.map((m) =>
+                m.id === id ? { ...m, status: "complete" as const } : m
+              )
+            )
+            setProcessingDetail((d) => {
+              const rest = { ...d }
+              delete rest[id]
+              return rest
+            })
+            return
+          }
+          const next = concepts[i]
+          i += 1
+          setMaterials((prev) =>
+            prev.map((m) =>
+              m.id === id
+                ? {
+                    ...m,
+                    extractedConcepts: [...(m.extractedConcepts ?? []), next],
+                  }
+                : m
+            )
+          )
+          setProcessingDetail((d) => ({
+            ...d,
+            [id]: `Identified ${i}/${concepts.length}: ${next}`,
+          }))
+        }, 280)
+      }, conceptStart)
     },
     []
   )
@@ -324,10 +380,12 @@ export default function MaterialsUploadPage() {
                               {material.size}
                             </span>
                             <span className="text-muted-foreground">·</span>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 min-w-0">
                               {getStatusIcon(material.status)}
-                              <span className="text-xs text-muted-foreground">
-                                {getStatusText(material.status)}
+                              <span className="text-xs text-muted-foreground truncate">
+                                {material.status === "processing" && processingDetail[material.id]
+                                  ? processingDetail[material.id]
+                                  : getStatusText(material.status)}
                               </span>
                             </div>
                           </div>
