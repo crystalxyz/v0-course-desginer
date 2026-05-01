@@ -5,12 +5,16 @@ import { GraduationCap, ArrowRight, Plus, BookOpen, Upload, ListOrdered, Sparkle
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { clearWizardState } from "@/lib/templates"
+import { clearWizardState, seedTemplate } from "@/lib/templates"
 
 export default function HomePage() {
   const router = useRouter()
   const startFresh = () => {
     clearWizardState()
+    router.push("/new")
+  }
+  const startFromTemplate = (template: "calculus" | "ml-systems") => {
+    seedTemplate(template)
     router.push("/new")
   }
   return (
@@ -70,12 +74,13 @@ export default function HomePage() {
                 Start a course
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Link
-                href="/sample?course=ml-systems"
+              <button
+                type="button"
+                onClick={() => startFromTemplate("ml-systems")}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
               >
                 or see a sample ML Systems course
-              </Link>
+              </button>
             </div>
           </div>
         </section>
@@ -272,12 +277,13 @@ export default function HomePage() {
                 Start a course
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Link
-                href="/sample?course=ml-systems"
+              <button
+                type="button"
+                onClick={() => startFromTemplate("ml-systems")}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
               >
                 or see a sample ML Systems course
-              </Link>
+              </button>
             </div>
           </div>
         </section>
