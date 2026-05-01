@@ -38,6 +38,7 @@ import {
 } from "@/lib/mock-course-data"
 import { calculusOptimizerStats, applyPathToConcepts } from "@/lib/optimizer-data"
 import { buildShareUrl } from "@/lib/share-url"
+import { consumeTemplateFastMode } from "@/lib/templates"
 import type {
   CourseSettings,
   CourseMaterial,
@@ -73,12 +74,35 @@ export default function CoursePlanPage() {
     const storedMaterials = localStorage.getItem("currentCourseMaterials")
 
     if (storedSettings) {
-      setCourseSettings(JSON.parse(storedSettings))
+      try {
+        setCourseSettings(JSON.parse(storedSettings))
+      } catch {
+        // ignore
+      }
     }
     if (storedMaterials) {
-      setMaterials(JSON.parse(storedMaterials))
+      try {
+        setMaterials(JSON.parse(storedMaterials))
+      } catch {
+        setMaterials(sampleMaterials)
+      }
     } else {
       setMaterials(sampleMaterials)
+    }
+
+    // Template-mode fast path: when the user came in via "Use template" or
+    // "step through a sample" they've already picked pre-built content;
+    // skip the staged optimizer animation and show the plan immediately.
+    const fastTemplate = consumeTemplateFastMode()
+    if (fastTemplate) {
+      const basePlan =
+        fastTemplate === "calculus" ? sampleCalculusCoursePlan : sampleCoursePlan
+      setPlan({
+        ...basePlan,
+        id: `plan-${Date.now()}`,
+        generatedAt: new Date(),
+      })
+      setIsGenerating(false)
     }
   }, [])
 

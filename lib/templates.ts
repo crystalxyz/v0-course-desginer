@@ -31,6 +31,12 @@ const TEMPLATES: Record<
   },
 }
 
+// Session-scoped flag (sessionStorage, cleared on tab close) signaling that
+// the wizard was entered via a template — downstream pages use this to skip
+// the slow generation animations and show the plan immediately, since the
+// user already selected pre-built content.
+export const TEMPLATE_FAST_MODE_KEY = "currentCourseTemplateMode"
+
 // Write the template's settings + materials into localStorage. Safe to call
 // from any client component; no-ops on the server.
 export function seedTemplate(template: CourseTemplateKey): void {
@@ -45,4 +51,23 @@ export function seedTemplate(template: CourseTemplateKey): void {
   }
   localStorage.setItem("currentCourseSettings", JSON.stringify(settings))
   localStorage.setItem("currentCourseMaterials", JSON.stringify(t.materials))
+  // Mark this wizard run as a template flow. Cleared once the plan page
+  // consumes it so a later "New Course" run still gets the full animation.
+  sessionStorage.setItem(TEMPLATE_FAST_MODE_KEY, template)
+}
+
+export function consumeTemplateFastMode(): CourseTemplateKey | null {
+  if (typeof window === "undefined") return null
+  const v = sessionStorage.getItem(TEMPLATE_FAST_MODE_KEY) as
+    | CourseTemplateKey
+    | null
+  if (v) sessionStorage.removeItem(TEMPLATE_FAST_MODE_KEY)
+  return v
+}
+
+export function peekTemplateFastMode(): CourseTemplateKey | null {
+  if (typeof window === "undefined") return null
+  return sessionStorage.getItem(TEMPLATE_FAST_MODE_KEY) as
+    | CourseTemplateKey
+    | null
 }

@@ -36,7 +36,13 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import type { CourseSettings, CourseMaterial, OutlineWeek, CourseOutline } from "@/lib/course-types"
-import { sampleOutline, sampleOutlineWeeks, generateOutline } from "@/lib/mock-course-data"
+import {
+  sampleOutline,
+  sampleOutlineWeeks,
+  sampleCalculusOutlineWeeks,
+  generateOutline,
+} from "@/lib/mock-course-data"
+import { peekTemplateFastMode } from "@/lib/templates"
 
 // Agent panel actions for outline
 const outlineAgentActions = [
@@ -60,19 +66,36 @@ export default function OutlinePage() {
   const [draggedWeek, setDraggedWeek] = useState<number | null>(null)
   const [dragOverWeek, setDragOverWeek] = useState<number | null>(null)
 
-  // Compute outcomes coverage from outline topics
+  // Compute outcomes coverage from outline topics. Tokenizes each outcome
+  // (drops leading "1." numbering, splits on punctuation, drops stopwords +
+  // short words) and then checks whether any of those tokens appear in the
+  // week's topic, description, or pinned-material names.
   const outcomeCoverage = useMemo(() => {
     if (!courseSettings?.learningOutcomes || !outline) return []
     const outcomes = courseSettings.learningOutcomes.split("\n").filter(Boolean)
+    const stopwords = new Set([
+      "the","a","an","and","or","of","to","for","in","on","with","from","by",
+      "is","are","be","as","at","this","these","that","those","it","its",
+      "into","using","such","also","than","then","than","onto","over","under",
+      "their","them","they","but","not","more","less","each","most","some",
+      "any","via","upon","while","when","where","what","which","you","your",
+    ])
     return outcomes.map(outcome => {
-      // Mock coverage - in production this would be computed by LLM
-      const covered = outline.weeks.some(w => 
-        w.topic.toLowerCase().includes(outcome.toLowerCase().slice(0, 10)) ||
-        w.description.toLowerCase().includes(outcome.toLowerCase().slice(0, 10))
-      )
+      const cleaned = outcome.replace(/^\d+\.\s*/, "").toLowerCase()
+      const tokens = cleaned
+        .split(/[\s,;.()/]+/)
+        .map((t) => t.replace(/[^a-z]/g, ""))
+        .filter((t) => t.length >= 4 && !stopwords.has(t))
+      const covered = outline.weeks.some(w => {
+        const matNames = w.pinnedMaterialIds
+          .map((id) => materials.find((m) => m.id === id)?.name ?? "")
+          .join(" ")
+        const haystack = `${w.topic} ${w.description} ${matNames}`.toLowerCase()
+        return tokens.some((t) => haystack.includes(t))
+      })
       return { outcome, covered }
     })
-  }, [courseSettings, outline])
+  }, [courseSettings, outline, materials])
 
   const coveredCount = outcomeCoverage.filter(o => o.covered).length
 
@@ -90,15 +113,24 @@ export default function OutlinePage() {
     // Generate outline
     const generate = async () => {
       setIsGenerating(true)
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      
-      // Use sample outline or generate based on settings
+      // Skip the artificial generation delay when the user came in via a
+      // template — they've already chosen pre-built content; no need to
+      // make them sit through 1.5s of fake "Generating outline…".
+      const fastMode = peekTemplateFastMode() !== null
+      if (!fastMode) {
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+      }
+
       const settings = storedSettings ? JSON.parse(storedSettings) : null
+      const isCalculus = (settings?.title ?? "")
+        .toLowerCase()
+        .includes("calculus")
+      const baseWeeks = isCalculus ? sampleCalculusOutlineWeeks : sampleOutlineWeeks
       const generatedOutline: CourseOutline = {
-        weeks: sampleOutlineWeeks.slice(0, settings?.weeks || 14),
+        weeks: baseWeeks.slice(0, settings?.weeks || 14),
         generatedAt: new Date(),
       }
-      
+
       setOutline(generatedOutline)
       setIsGenerating(false)
     }
