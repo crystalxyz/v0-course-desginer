@@ -170,137 +170,139 @@ export const sampleMaterials: CourseMaterial[] = [
   },
 ]
 
-// Expanded concept graph with 28 concepts for ML Systems course
+// Expanded concept graph for ML Systems course
 export const sampleConcepts: Concept[] = [
   // Week 1 - Foundations
-  { id: "c1", name: "Distributed Training Basics", weekIntroduced: 1, dependencies: [], coveredBy: ["mat-3"] },
+  { id: "c1", name: "Distributed Training Basics", weekIntroduced: 1, dependencies: [], coveredBy: ["mat-15", "mat-3"] },
   { id: "c2", name: "Data Parallelism", weekIntroduced: 1, dependencies: ["c1"], coveredBy: ["mat-3"] },
+  { id: "c3", name: "Gradient Bucketing", weekIntroduced: 1, dependencies: ["c2"], coveredBy: ["mat-3"] },
   
-  // Week 2 - Gradient Communication
-  { id: "c3", name: "Gradient Aggregation", weekIntroduced: 2, dependencies: ["c2"], coveredBy: ["mat-3"] },
-  { id: "c4", name: "Collective Operations", weekIntroduced: 2, dependencies: ["c3"], coveredBy: ["mat-3"] },
-  { id: "c5", name: "All-Reduce", weekIntroduced: 2, dependencies: ["c4"], coveredBy: ["mat-3"] },
+  // Week 2 - Communication Patterns
+  { id: "c4", name: "Ring All-Reduce", weekIntroduced: 2, dependencies: ["c2"], coveredBy: ["mat-2"] },
+  { id: "c5", name: "Parameter Servers", weekIntroduced: 2, dependencies: ["c1"], coveredBy: ["mat-1"] },
+  { id: "c6", name: "Collective Operations", weekIntroduced: 2, dependencies: ["c4"], coveredBy: ["mat-2"] },
   
-  // Week 3 - Ring All-Reduce and Parameter Servers
-  { id: "c6", name: "Ring All-Reduce", weekIntroduced: 3, dependencies: ["c5"], coveredBy: ["mat-3"] },
-  { id: "c7", name: "Parameter Servers", weekIntroduced: 3, dependencies: ["c1"], coveredBy: ["mat-1"] },
+  // Week 3 - Sync/Async Training
+  { id: "c7", name: "Synchronous SGD", weekIntroduced: 3, dependencies: ["c5"], coveredBy: ["mat-1"] },
+  { id: "c8", name: "Asynchronous SGD", weekIntroduced: 3, dependencies: ["c7"], coveredBy: ["mat-1"] },
+  { id: "c9", name: "Communication Overlap", weekIntroduced: 3, dependencies: ["c3"], coveredBy: ["mat-3"] },
   
-  // Week 4 - Sync/Async Training
-  { id: "c8", name: "Synchronous SGD", weekIntroduced: 4, dependencies: ["c3", "c7"], coveredBy: ["mat-1"] },
-  { id: "c9", name: "Asynchronous SGD", weekIntroduced: 4, dependencies: ["c8"], coveredBy: ["mat-1"] },
-  { id: "c10", name: "Staleness", weekIntroduced: 4, dependencies: ["c9"], coveredBy: ["mat-1"] },
-  { id: "c11", name: "Bounded Staleness", weekIntroduced: 4, dependencies: ["c10"], coveredBy: ["mat-1"] },
+  // Week 4 - Pipeline Parallelism
+  { id: "c10", name: "Pipeline Parallelism", weekIntroduced: 4, dependencies: ["c2"], coveredBy: ["mat-4", "mat-5"] },
+  { id: "c11", name: "Micro-batching", weekIntroduced: 4, dependencies: ["c10"], coveredBy: ["mat-4"] },
+  { id: "c12", name: "1F1B Scheduling", weekIntroduced: 4, dependencies: ["c10"], coveredBy: ["mat-5"] },
   
-  // Week 5 - Memory & Model Parallelism (GAP: GPU Memory assumed but not covered until later)
-  { id: "c12", name: "Model Parallelism", weekIntroduced: 5, dependencies: ["c2"], coveredBy: ["mat-4"] },
-  { id: "c13", name: "Memory Optimization", weekIntroduced: 5, dependencies: ["c12", "c27"], coveredBy: ["mat-4"] }, // c27 is GPU Memory - GAP
-  { id: "c14", name: "Activation Checkpointing", weekIntroduced: 5, dependencies: ["c13"], coveredBy: ["mat-4"] },
+  // Week 5 - Tensor Parallelism & Memory
+  { id: "c13", name: "Tensor Parallelism", weekIntroduced: 5, dependencies: ["c10"], coveredBy: ["mat-6"] },
+  { id: "c14", name: "3D Parallelism", weekIntroduced: 5, dependencies: ["c2", "c10", "c13"], coveredBy: ["mat-6"] },
+  { id: "c15", name: "Memory Analysis", weekIntroduced: 5, dependencies: [], coveredBy: ["mat-7"] },
   
   // Week 6 - ZeRO
-  { id: "c15", name: "Gradient Partitioning", weekIntroduced: 6, dependencies: ["c13"], coveredBy: ["mat-4"] },
-  { id: "c16", name: "Optimizer State Partitioning", weekIntroduced: 6, dependencies: ["c15"], coveredBy: ["mat-4"] },
-  { id: "c17", name: "ZeRO Optimizer", weekIntroduced: 6, dependencies: ["c15", "c16"], coveredBy: ["mat-4"] },
+  { id: "c16", name: "ZeRO Stages", weekIntroduced: 6, dependencies: ["c15"], coveredBy: ["mat-7"] },
+  { id: "c17", name: "Optimizer State Partitioning", weekIntroduced: 6, dependencies: ["c16"], coveredBy: ["mat-7"] },
+  { id: "c18", name: "CPU/NVMe Offloading", weekIntroduced: 6, dependencies: ["c16"], coveredBy: ["mat-8"] },
   
-  // Week 8 - Model Serving
-  { id: "c18", name: "Model Serving", weekIntroduced: 8, dependencies: [], coveredBy: ["mat-2"] },
-  { id: "c19", name: "Batching Strategies", weekIntroduced: 8, dependencies: ["c18"], coveredBy: ["mat-2"] },
-  { id: "c20", name: "Dynamic Batching", weekIntroduced: 8, dependencies: ["c19"], coveredBy: ["mat-2"] },
+  // Week 8 - FlashAttention
+  { id: "c19", name: "IO-Aware Algorithms", weekIntroduced: 8, dependencies: [], coveredBy: ["mat-9"] },
+  { id: "c20", name: "Kernel Fusion", weekIntroduced: 8, dependencies: ["c19"], coveredBy: ["mat-9"] },
+  { id: "c21", name: "Tiling", weekIntroduced: 8, dependencies: ["c19"], coveredBy: ["mat-9", "mat-10"] },
   
-  // Week 9 - Inference Optimization
-  { id: "c21", name: "Latency Optimization", weekIntroduced: 9, dependencies: ["c20"], coveredBy: ["mat-2"] },
-  { id: "c22", name: "SLA Management", weekIntroduced: 9, dependencies: ["c21"], coveredBy: ["mat-2"] },
-  { id: "c23", name: "Quantization", weekIntroduced: 9, dependencies: ["c21"], coveredBy: ["mat-9"] },
-  { id: "c24", name: "Knowledge Distillation", weekIntroduced: 9, dependencies: ["c23"], coveredBy: ["mat-9"] },
+  // Week 9 - Model Serving
+  { id: "c22", name: "Model Serving", weekIntroduced: 9, dependencies: [], coveredBy: ["mat-16"] },
+  { id: "c23", name: "Continuous Batching", weekIntroduced: 9, dependencies: ["c22"], coveredBy: ["mat-11"] },
+  { id: "c24", name: "Iteration-Level Scheduling", weekIntroduced: 9, dependencies: ["c23"], coveredBy: ["mat-11"] },
   
-  // Week 10 - Feature Engineering
-  { id: "c25", name: "Feature Engineering", weekIntroduced: 10, dependencies: [], coveredBy: ["mat-5"] },
-  { id: "c26", name: "Feature Stores", weekIntroduced: 10, dependencies: ["c25"], coveredBy: ["mat-5"] },
+  // Week 10 - Advanced Serving
+  { id: "c25", name: "PagedAttention", weekIntroduced: 10, dependencies: ["c23"], coveredBy: ["mat-12"] },
+  { id: "c26", name: "KV Cache Management", weekIntroduced: 10, dependencies: ["c25"], coveredBy: ["mat-12"] },
+  { id: "c27", name: "Statistical Multiplexing", weekIntroduced: 10, dependencies: ["c22"], coveredBy: ["mat-13"] },
   
-  // Week 11 - Pipeline Orchestration
-  { id: "c28", name: "Pipeline Orchestration", weekIntroduced: 11, dependencies: [], coveredBy: ["mat-6"] },
-  { id: "c29", name: "Artifact Tracking", weekIntroduced: 11, dependencies: ["c28"], coveredBy: ["mat-6"] },
-  
-  // GPU Memory - introduced late (Week 12) but assumed in Week 5 - THIS IS A GAP
-  { id: "c27", name: "GPU Memory Hierarchy", weekIntroduced: 12, dependencies: [], coveredBy: ["mat-7"], isGap: true },
-  
-  // Advanced topics (if GPU primer was moved earlier)
-  { id: "c30", name: "Tensor Cores", weekIntroduced: 12, dependencies: ["c27"], coveredBy: ["mat-7"] },
+  // Week 11 - Inference Optimization
+  { id: "c28", name: "Inference Optimization", weekIntroduced: 11, dependencies: ["c22"], coveredBy: ["mat-14"] },
+  { id: "c29", name: "Quantization", weekIntroduced: 11, dependencies: ["c28"], coveredBy: ["mat-16"] },
+  { id: "c30", name: "SLA Management", weekIntroduced: 11, dependencies: ["c28"], coveredBy: ["mat-16"] },
 ]
 
 export const sampleWeeks: CourseWeek[] = [
   {
     week: 1,
     readings: [
-      { materialId: "mat-3", materialName: "Data Parallel Training - Survey.pdf", pageRange: "1-15", sectionAnchors: ["Introduction", "Background"] },
+      { materialId: "mat-15", materialName: "MLSys Textbook - Ch. 3: Distributed Training Fundamentals.pdf", pageRange: "1-25", sectionAnchors: ["Introduction", "Communication Primitives"] },
+      { materialId: "mat-3", materialName: "PyTorch Distributed: Experiences on Accelerating Data Parallel Training.pdf", pageRange: "1-8", sectionAnchors: ["Introduction", "System Design"] },
     ],
-    conceptsIntroduced: ["Distributed Training Basics", "Data Parallelism"],
-    inClassFocus: "Motivate distributed training with scale examples. Compare single-GPU vs multi-GPU training.",
+    conceptsIntroduced: ["Distributed Training Basics", "Data Parallelism", "Gradient Bucketing"],
+    inClassFocus: "Motivate distributed training with scale examples. Compare single-GPU vs multi-GPU training. PyTorch DDP architecture.",
     discussionQuestions: [
       "What are the main bottlenecks when training on a single GPU?",
       "How does data parallelism differ from model parallelism conceptually?",
-    ],
-    estimatedHours: 3,
-  },
-  {
-    week: 2,
-    readings: [
-      { materialId: "mat-3", materialName: "Data Parallel Training - Survey.pdf", pageRange: "15-30", sectionAnchors: ["All-Reduce", "Ring All-Reduce"] },
-    ],
-    conceptsIntroduced: ["Gradient Aggregation", "Collective Operations", "All-Reduce"],
-    inClassFocus: "Deep dive into gradient aggregation algorithms. Analyze ring all-reduce bandwidth efficiency.",
-    problemSet: [
-      "Derive the bandwidth cost of naive all-reduce vs ring all-reduce for N workers",
-      "Implement a simple gradient aggregation simulation",
+      "Why does PyTorch use gradient bucketing?",
     ],
     estimatedHours: 4,
   },
   {
+    week: 2,
+    readings: [
+      { materialId: "mat-2", materialName: "Horovod: Fast and Easy Distributed Deep Learning (Sergeev & Del Balso, 2018).pdf", sectionAnchors: ["Ring All-Reduce", "Implementation"] },
+      { materialId: "mat-1", materialName: "Scaling Distributed ML with System Relaxations (Li et al., 2014).pdf", pageRange: "1-15", sectionAnchors: ["Parameter Server Architecture"] },
+    ],
+    conceptsIntroduced: ["Ring All-Reduce", "Parameter Servers", "Collective Operations"],
+    inClassFocus: "Deep dive into gradient aggregation algorithms. Compare ring all-reduce (Horovod) vs parameter server approaches.",
+    problemSet: [
+      "Derive the bandwidth cost of naive all-reduce vs ring all-reduce for N workers",
+      "Implement a simple gradient aggregation simulation",
+    ],
+    estimatedHours: 5,
+  },
+  {
     week: 3,
     readings: [
-      { materialId: "mat-3", materialName: "Data Parallel Training - Survey.pdf", pageRange: "30-45", sectionAnchors: ["Ring All-Reduce Implementation"] },
-      { materialId: "mat-1", materialName: "Scaling Distributed ML with System Relaxations.pdf", pageRange: "1-20" },
+      { materialId: "mat-1", materialName: "Scaling Distributed ML with System Relaxations (Li et al., 2014).pdf", pageRange: "15-30", sectionAnchors: ["Synchronous SGD", "Asynchronous SGD"] },
+      { materialId: "mat-3", materialName: "PyTorch Distributed: Experiences on Accelerating Data Parallel Training.pdf", pageRange: "8-15", sectionAnchors: ["Communication Overlap", "Performance"] },
     ],
-    conceptsIntroduced: ["Ring All-Reduce", "Parameter Servers"],
-    inClassFocus: "Parameter server architecture. Trade-offs between centralized and decentralized approaches.",
+    conceptsIntroduced: ["Synchronous SGD", "Asynchronous SGD", "Staleness", "Communication Overlap"],
+    inClassFocus: "Sync vs async training. Staleness and convergence. Overlapping computation with communication.",
     discussionQuestions: [
       "What are the failure modes of a parameter server architecture?",
-      "How does parameter server scale compared to all-reduce?",
+      "When would async training be preferred over sync training?",
     ],
     estimatedHours: 4,
   },
   {
     week: 4,
     readings: [
-      { materialId: "mat-1", materialName: "Scaling Distributed ML with System Relaxations.pdf", pageRange: "20-40" },
+      { materialId: "mat-4", materialName: "GPipe: Efficient Training of Giant Neural Networks (Huang et al., 2019).pdf", sectionAnchors: ["Pipeline Parallelism", "Micro-batching"] },
+      { materialId: "mat-5", materialName: "PipeDream: Generalized Pipeline Parallelism (Narayanan et al., 2019).pdf", sectionAnchors: ["1F1B Schedule", "Weight Stashing"] },
     ],
-    conceptsIntroduced: ["Synchronous SGD", "Asynchronous SGD", "Staleness", "Bounded Staleness"],
-    inClassFocus: "Sync vs async training. Staleness and its effects on convergence.",
+    conceptsIntroduced: ["Pipeline Parallelism", "Micro-batching", "1F1B Scheduling", "Bubble Overhead"],
+    inClassFocus: "Pipeline parallelism deep dive. Compare GPipe synchronous approach vs PipeDream's asynchronous 1F1B schedule.",
     problemSet: [
-      "Analyze the convergence behavior under different staleness bounds",
-      "Design a bounded-staleness protocol",
+      "Calculate bubble overhead for different pipeline depths and micro-batch counts",
+      "Design a weight stashing strategy for a 4-stage pipeline",
     ],
     estimatedHours: 5,
   },
   {
     week: 5,
     readings: [
-      { materialId: "mat-4", materialName: "ZeRO - Memory Optimizations.pdf", pageRange: "1-15" },
+      { materialId: "mat-6", materialName: "Megatron-LM: Training Multi-Billion Parameter Models (Shoeybi et al., 2019).pdf", sectionAnchors: ["Tensor Parallelism", "3D Parallelism"] },
+      { materialId: "mat-7", materialName: "ZeRO: Memory Optimizations Toward Training Trillion Parameter Models (Rajbhandari et al., 2020).pdf", pageRange: "1-10", sectionAnchors: ["Memory Analysis"] },
     ],
-    conceptsIntroduced: ["Model Parallelism", "Memory Optimization", "Activation Checkpointing"],
-    inClassFocus: "Why memory is the bottleneck. Introduction to model parallelism strategies.",
+    conceptsIntroduced: ["Tensor Parallelism", "3D Parallelism", "Memory Bottlenecks", "ZeRO Introduction"],
+    inClassFocus: "Tensor parallelism in Megatron-LM. Memory analysis for large models. Introduction to ZeRO.",
     discussionQuestions: [
-      "When would you choose model parallelism over data parallelism?",
-      "What are the communication patterns in model parallelism?",
+      "When would you choose tensor parallelism over pipeline parallelism?",
+      "What are the communication patterns in tensor parallelism?",
     ],
-    estimatedHours: 4,
+    estimatedHours: 5,
   },
   {
     week: 6,
     readings: [
-      { materialId: "mat-4", materialName: "ZeRO - Memory Optimizations.pdf", pageRange: "15-30" },
+      { materialId: "mat-7", materialName: "ZeRO: Memory Optimizations Toward Training Trillion Parameter Models (Rajbhandari et al., 2020).pdf", pageRange: "10-20", sectionAnchors: ["ZeRO Stages", "Implementation"] },
+      { materialId: "mat-8", materialName: "DeepSpeed: System Optimizations Enable Training Deep Learning Models with Over 100 Billion Parameters.pdf", sectionAnchors: ["ZeRO-Offload", "ZeRO-Infinity"] },
     ],
-    conceptsIntroduced: ["Gradient Partitioning", "Optimizer State Partitioning", "ZeRO Optimizer"],
-    inClassFocus: "Deep dive into ZeRO stages. Memory vs communication trade-offs.",
+    conceptsIntroduced: ["ZeRO Stages", "Optimizer State Partitioning", "CPU Offloading", "NVMe Offloading"],
+    inClassFocus: "Deep dive into ZeRO-1/2/3. DeepSpeed's offloading strategies for extreme scale.",
     problemSet: [
       "Calculate memory savings for ZeRO-1, ZeRO-2, and ZeRO-3 for a given model",
       "Profile memory usage of a training run with and without ZeRO",
@@ -314,30 +316,60 @@ export const sampleWeeks: CourseWeek[] = [
     inClassFocus: "Midterm review and project checkpoint discussions.",
     discussionQuestions: [
       "Compare the systems we have studied so far. What are the key design decisions?",
+      "How do you choose between data, pipeline, and tensor parallelism?",
     ],
     estimatedHours: 3,
   },
   {
     week: 8,
     readings: [
-      { materialId: "mat-2", materialName: "MLSys - Model Serving Chapter.pdf", pageRange: "1-25" },
+      { materialId: "mat-9", materialName: "FlashAttention: Fast and Memory-Efficient Exact Attention (Dao et al., 2022).pdf", sectionAnchors: ["IO-Aware Attention", "Tiling"] },
+      { materialId: "mat-10", materialName: "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning.pdf", sectionAnchors: ["Optimizations", "Benchmarks"] },
     ],
-    conceptsIntroduced: ["Model Serving", "Batching Strategies", "Dynamic Batching"],
-    inClassFocus: "From training to serving. Batching for throughput vs latency.",
+    conceptsIntroduced: ["IO-Aware Algorithms", "Kernel Fusion", "Memory Hierarchy Optimization", "Tiling"],
+    inClassFocus: "Understanding FlashAttention's IO-aware approach. Why memory bandwidth matters more than FLOPs.",
     discussionQuestions: [
-      "How does serving latency SLA affect batching decisions?",
-      "What are the differences between online and offline serving?",
+      "Why is standard attention memory-inefficient?",
+      "How does tiling reduce memory access?",
     ],
     estimatedHours: 4,
   },
   {
     week: 9,
     readings: [
-      { materialId: "mat-2", materialName: "MLSys - Model Serving Chapter.pdf", pageRange: "25-45" },
-      { materialId: "mat-9", materialName: "Model Compression Survey.pdf", pageRange: "1-20" },
+      { materialId: "mat-16", materialName: "MLSys Textbook - Ch. 7: Model Serving Systems.pdf", pageRange: "1-30", sectionAnchors: ["Serving Architecture", "Batching"] },
+      { materialId: "mat-11", materialName: "Orca: A Distributed Serving System for Transformer-Based Generative Models (Yu et al., 2022).pdf", sectionAnchors: ["Continuous Batching", "Iteration-Level Scheduling"] },
     ],
-    conceptsIntroduced: ["Latency Optimization", "SLA Management", "Quantization", "Knowledge Distillation"],
-    inClassFocus: "Optimization techniques for inference. Quantization, distillation, pruning.",
+    conceptsIntroduced: ["Model Serving", "Continuous Batching", "Iteration-Level Scheduling", "Dynamic Batching"],
+    inClassFocus: "From training to serving. Orca's continuous batching breakthrough.",
+    problemSet: [
+      "Compare throughput of static batching vs continuous batching",
+      "Design an iteration-level scheduler for mixed-length requests",
+    ],
+    estimatedHours: 5,
+  },
+  {
+    week: 10,
+    readings: [
+      { materialId: "mat-12", materialName: "vLLM: Efficient Memory Management for Large Language Model Serving (Kwon et al., 2023).pdf", sectionAnchors: ["PagedAttention", "Memory Management"] },
+      { materialId: "mat-13", materialName: "AlpaServe: Statistical Multiplexing with Model Parallelism for Deep Learning Serving.pdf", sectionAnchors: ["Model Placement", "Multiplexing"] },
+    ],
+    conceptsIntroduced: ["PagedAttention", "KV Cache Management", "Statistical Multiplexing", "Model Placement"],
+    inClassFocus: "vLLM's PagedAttention for memory efficiency. AlpaServe's approach to multi-model serving.",
+    discussionQuestions: [
+      "How does PagedAttention solve memory fragmentation?",
+      "When would statistical multiplexing improve efficiency?",
+    ],
+    estimatedHours: 5,
+  },
+  {
+    week: 11,
+    readings: [
+      { materialId: "mat-14", materialName: "DeepSpeed-Inference: Enabling Efficient Inference of Transformer Models at Unprecedented Scale.pdf", sectionAnchors: ["Kernel Injection", "Tensor Slicing"] },
+      { materialId: "mat-16", materialName: "MLSys Textbook - Ch. 7: Model Serving Systems.pdf", pageRange: "30-50", sectionAnchors: ["Latency Optimization", "Quantization"] },
+    ],
+    conceptsIntroduced: ["Inference Optimization", "Kernel Injection", "Quantization", "SLA Management"],
+    inClassFocus: "DeepSpeed-Inference optimizations. Quantization and other inference optimizations.",
     problemSet: [
       "Measure the latency impact of INT8 quantization on a sample model",
       "Design a serving system that meets a 50ms P99 latency target",
@@ -345,38 +377,10 @@ export const sampleWeeks: CourseWeek[] = [
     estimatedHours: 5,
   },
   {
-    week: 10,
-    readings: [
-      { materialId: "mat-5", materialName: "Feature Store Design Patterns.pdf" },
-    ],
-    conceptsIntroduced: ["Feature Engineering", "Feature Stores"],
-    inClassFocus: "Feature engineering at scale. Online vs offline feature serving.",
-    discussionQuestions: [
-      "What consistency guarantees do feature stores need?",
-      "How do you handle feature drift in production?",
-    ],
-    estimatedHours: 3,
-  },
-  {
-    week: 11,
-    readings: [
-      { materialId: "mat-6", materialName: "ML Pipeline Orchestration.pdf" },
-    ],
-    conceptsIntroduced: ["Pipeline Orchestration", "Artifact Tracking"],
-    inClassFocus: "DAG-based orchestration. Reproducibility and versioning in ML pipelines.",
-    problemSet: [
-      "Design a pipeline DAG for a complete ML workflow",
-      "Implement pipeline versioning and artifact tracking",
-    ],
-    estimatedHours: 4,
-  },
-  {
     week: 12,
-    readings: [
-      { materialId: "mat-7", materialName: "GPU Architecture Primer.pdf" },
-    ],
-    conceptsIntroduced: ["GPU Memory Hierarchy", "Tensor Cores"],
-    inClassFocus: "GPU architecture deep dive. Understanding hardware for optimization.",
+    readings: [],
+    conceptsIntroduced: [],
+    inClassFocus: "Project work session and office hours.",
     estimatedHours: 3,
   },
   {
@@ -398,60 +402,38 @@ export const sampleWeeks: CourseWeek[] = [
 export const sampleOutcomeCoverage: OutcomeCoverage[] = [
   {
     outcome: "Design and implement scalable ML training pipelines",
-    coveredInWeeks: [1, 2, 3, 4, 5, 6, 11],
-    coveredByReadings: ["mat-1", "mat-3", "mat-4", "mat-6"],
+    coveredInWeeks: [1, 2, 3, 4, 5, 6],
+    coveredByReadings: ["mat-1", "mat-2", "mat-3", "mat-4", "mat-5", "mat-6", "mat-7", "mat-8"],
     isCovered: true,
   },
   {
     outcome: "Optimize model inference for production deployment",
-    coveredInWeeks: [8, 9],
-    coveredByReadings: ["mat-2", "mat-9"],
+    coveredInWeeks: [9, 10, 11],
+    coveredByReadings: ["mat-11", "mat-12", "mat-13", "mat-14", "mat-16"],
     isCovered: true,
   },
   {
     outcome: "Understand tradeoffs in distributed training strategies",
     coveredInWeeks: [1, 2, 3, 4, 5, 6],
-    coveredByReadings: ["mat-1", "mat-3", "mat-4"],
+    coveredByReadings: ["mat-1", "mat-2", "mat-3", "mat-4", "mat-5", "mat-6", "mat-7", "mat-8", "mat-15"],
     isCovered: true,
   },
   {
-    outcome: "Apply MLOps best practices for model lifecycle management",
-    coveredInWeeks: [10, 11],
-    coveredByReadings: ["mat-5", "mat-6"],
+    outcome: "Implement memory-efficient training for large models",
+    coveredInWeeks: [5, 6, 8],
+    coveredByReadings: ["mat-7", "mat-8", "mat-9", "mat-10"],
     isCovered: true,
   },
   {
-    outcome: "Debug and profile ML system performance bottlenecks",
-    coveredInWeeks: [5, 6, 9, 12],
-    coveredByReadings: ["mat-4", "mat-7", "mat-2"],
+    outcome: "Build efficient LLM serving systems",
+    coveredInWeeks: [9, 10, 11],
+    coveredByReadings: ["mat-11", "mat-12", "mat-13", "mat-14"],
     isCovered: true,
   },
 ]
 
-// Gap warnings - GPU Memory is assumed in Week 5 but not covered until Week 12
-export const sampleGapWarnings: GapWarning[] = [
-  {
-    concept: "GPU Memory Hierarchy",
-    assumedInWeek: 5,
-    introducedInWeek: 12,
-    assumedByMaterial: "ZeRO - Memory Optimizations.pdf",
-    assumedByReading: "mat-4",
-    dependentConcept: "Memory Optimization",
-    suggestion: "Move GPU Architecture Primer to Week 4 or earlier.",
-    suggestedFix: {
-      type: "move-reading",
-      fromWeek: 12,
-      toWeek: 4,
-      materialId: "mat-7",
-    },
-    alternativeFix: {
-      type: "add-primer",
-      week: 4,
-      concept: "GPU Memory Basics",
-      description: "Add a 30-minute primer on GPU memory hierarchy before introducing ZeRO.",
-    },
-  },
-]
+// No gap warnings - course is properly sequenced
+export const sampleGapWarnings: GapWarning[] = []
 
 export const sampleCoursePlan: CoursePlan = {
   id: "plan-1",
@@ -471,18 +453,18 @@ export const sampleCourse: SampleCourse = {
 
 // Sample outline for ML Systems course
 export const sampleOutlineWeeks: OutlineWeek[] = [
-  { week: 1, topic: "Distributed Training Fundamentals", description: "Introduction to distributed ML, data parallelism basics", pinnedMaterialIds: ["mat-3"] },
-  { week: 2, topic: "Gradient Communication", description: "Gradient aggregation, collective operations, all-reduce patterns", pinnedMaterialIds: ["mat-3"] },
-  { week: 3, topic: "Parameter Servers & Ring All-Reduce", description: "Centralized vs decentralized architectures, ring all-reduce implementation", pinnedMaterialIds: ["mat-1", "mat-3"] },
-  { week: 4, topic: "Synchronous vs Asynchronous Training", description: "Sync/async SGD, staleness effects, bounded staleness protocols", pinnedMaterialIds: ["mat-1"] },
-  { week: 5, topic: "Memory Optimization & Model Parallelism", description: "Memory bottlenecks, model parallelism strategies, activation checkpointing", pinnedMaterialIds: ["mat-4"] },
-  { week: 6, topic: "ZeRO Optimizer Deep Dive", description: "ZeRO stages, gradient and optimizer state partitioning", pinnedMaterialIds: ["mat-4"] },
+  { week: 1, topic: "Distributed Training Fundamentals", description: "Introduction to distributed ML, PyTorch DDP, data parallelism", pinnedMaterialIds: ["mat-15", "mat-3"] },
+  { week: 2, topic: "Communication Patterns", description: "Ring all-reduce (Horovod), parameter servers, collective operations", pinnedMaterialIds: ["mat-2", "mat-1"] },
+  { week: 3, topic: "Sync vs Async Training", description: "Synchronous/asynchronous SGD, staleness, communication overlap", pinnedMaterialIds: ["mat-1", "mat-3"] },
+  { week: 4, topic: "Pipeline Parallelism", description: "GPipe, PipeDream, micro-batching, 1F1B scheduling", pinnedMaterialIds: ["mat-4", "mat-5"] },
+  { week: 5, topic: "Tensor Parallelism & 3D Parallelism", description: "Megatron-LM, tensor parallelism, memory analysis", pinnedMaterialIds: ["mat-6", "mat-7"] },
+  { week: 6, topic: "ZeRO & Memory Optimization", description: "ZeRO stages, DeepSpeed offloading, trillion-parameter training", pinnedMaterialIds: ["mat-7", "mat-8"] },
   { week: 7, topic: "Midterm Review", description: "Consolidation of distributed training concepts", pinnedMaterialIds: [] },
-  { week: 8, topic: "Model Serving Fundamentals", description: "From training to serving, batching strategies", pinnedMaterialIds: ["mat-2"] },
-  { week: 9, topic: "Inference Optimization", description: "Latency optimization, quantization, knowledge distillation", pinnedMaterialIds: ["mat-2", "mat-9"] },
-  { week: 10, topic: "Feature Engineering at Scale", description: "Feature stores, online vs offline features", pinnedMaterialIds: ["mat-5"] },
-  { week: 11, topic: "ML Pipeline Orchestration", description: "DAG orchestration, artifact tracking, reproducibility", pinnedMaterialIds: ["mat-6"] },
-  { week: 12, topic: "GPU Architecture Deep Dive", description: "GPU memory hierarchy, tensor cores, kernel optimization", pinnedMaterialIds: ["mat-7"] },
+  { week: 8, topic: "FlashAttention", description: "IO-aware algorithms, kernel fusion, memory hierarchy optimization", pinnedMaterialIds: ["mat-9", "mat-10"] },
+  { week: 9, topic: "Model Serving & Continuous Batching", description: "Orca's continuous batching, iteration-level scheduling", pinnedMaterialIds: ["mat-16", "mat-11"] },
+  { week: 10, topic: "LLM Serving Systems", description: "vLLM PagedAttention, AlpaServe multiplexing, KV cache management", pinnedMaterialIds: ["mat-12", "mat-13"] },
+  { week: 11, topic: "Inference Optimization", description: "DeepSpeed-Inference, quantization, SLA management", pinnedMaterialIds: ["mat-14", "mat-16"] },
+  { week: 12, topic: "Project Work Session", description: "Office hours and project development time", pinnedMaterialIds: [] },
   { week: 13, topic: "Project Presentations (Part 1)", description: "Student project presentations and feedback", pinnedMaterialIds: [] },
   { week: 14, topic: "Project Presentations (Part 2) & Wrap-up", description: "Final presentations and course summary", pinnedMaterialIds: [] },
 ]
@@ -504,6 +486,82 @@ export async function generateOutline(
     weeks: sampleOutlineWeeks.slice(0, settings.weeks),
     generatedAt: new Date(),
   }
+}
+
+// Candidate pool for reading suggestions
+export interface SuggestedReading {
+  id: string
+  name: string
+  reason: string
+  relevanceScore: number
+  topics: string[]
+}
+
+// Map week numbers to suggested complementary readings
+export const suggestedReadingsPool: Record<number, SuggestedReading[]> = {
+  // Week 7 (Midterm) - suggest review papers
+  7: [
+    {
+      id: "sug-7-1",
+      name: "A Survey on Distributed Machine Learning (Verbraeken et al., 2020).pdf",
+      reason: "Comprehensive survey covering all distributed training paradigms discussed so far",
+      relevanceScore: 0.92,
+      topics: ["distributed training", "data parallelism", "model parallelism"],
+    },
+    {
+      id: "sug-7-2",
+      name: "Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM.pdf",
+      reason: "Practical case study combining techniques from weeks 1-6",
+      relevanceScore: 0.88,
+      topics: ["3D parallelism", "large-scale training"],
+    },
+  ],
+  // Week 12 (Project work) - suggest recent papers
+  12: [
+    {
+      id: "sug-12-1",
+      name: "LoRA: Low-Rank Adaptation of Large Language Models (Hu et al., 2021).pdf",
+      reason: "Efficient fine-tuning technique relevant to project work",
+      relevanceScore: 0.85,
+      topics: ["fine-tuning", "parameter efficiency"],
+    },
+    {
+      id: "sug-12-2",
+      name: "QLoRA: Efficient Finetuning of Quantized LLMs (Dettmers et al., 2023).pdf",
+      reason: "Combines quantization with efficient fine-tuning",
+      relevanceScore: 0.83,
+      topics: ["quantization", "fine-tuning"],
+    },
+  ],
+  // Week 13 (Presentations) - optional advanced readings
+  13: [
+    {
+      id: "sug-13-1",
+      name: "Scaling Laws for Neural Language Models (Kaplan et al., 2020).pdf",
+      reason: "Foundational paper on scaling behavior",
+      relevanceScore: 0.80,
+      topics: ["scaling laws", "compute-optimal training"],
+    },
+  ],
+  // Week 14 (Wrap-up) - future directions
+  14: [
+    {
+      id: "sug-14-1",
+      name: "Mixture of Experts Meets Instruction Tuning (Shen et al., 2023).pdf",
+      reason: "Emerging approach combining MoE with instruction tuning",
+      relevanceScore: 0.78,
+      topics: ["mixture of experts", "instruction tuning"],
+    },
+  ],
+}
+
+// Get suggested readings for a week based on its current reading count
+export function getSuggestedReadings(weekNum: number, currentReadingsCount: number): SuggestedReading[] {
+  // If week has fewer than 2 readings, suggest additions
+  if (currentReadingsCount < 2) {
+    return suggestedReadingsPool[weekNum] || []
+  }
+  return []
 }
 
 // Sample problem sets for first 3 weeks

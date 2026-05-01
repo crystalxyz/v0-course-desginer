@@ -23,7 +23,6 @@ import {
   sampleMaterials,
   sampleWeeks,
   sampleOutcomeCoverage,
-  sampleGapWarnings,
 } from "@/lib/mock-course-data"
 
 export default function SampleCoursePage() {
@@ -92,11 +91,6 @@ export default function SampleCoursePage() {
                 <Badge variant="secondary" className="text-xs">
                   {sampleMaterials.length} materials
                 </Badge>
-                {sampleGapWarnings.length > 0 && (
-                  <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-200">
-                    {sampleGapWarnings.length} gap warning
-                  </Badge>
-                )}
               </div>
             </div>
             <div className="hidden sm:flex items-center gap-3">
@@ -129,7 +123,7 @@ export default function SampleCoursePage() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="schedule" className="h-[600px]">
-              <WeekSchedule weeks={sampleWeeks} gapWarnings={sampleGapWarnings} />
+              <WeekSchedule weeks={sampleWeeks} />
             </TabsContent>
             <TabsContent value="outcomes" className="h-[600px]">
               <OutcomesTracker outcomes={sampleOutcomeCoverage} />
@@ -146,7 +140,7 @@ export default function SampleCoursePage() {
               <h2 className="text-sm font-medium text-foreground">Weekly Schedule</h2>
             </div>
             <div className="h-[calc(100%-32px)]">
-              <WeekSchedule weeks={sampleWeeks} gapWarnings={sampleGapWarnings} />
+              <WeekSchedule weeks={sampleWeeks} />
             </div>
           </div>
 
