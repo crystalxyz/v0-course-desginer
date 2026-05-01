@@ -1,0 +1,593 @@
+{
+  "dependency_graph": {
+    "dependency_overview": {
+      "chain_1": [
+        "KC000:Limits and Continuity Analysis",
+        "KC001:Derivative Definition and Differentiability",
+        "KC002:Fundamental Differentiation Rules and Techniques",
+        "KC003:Interpretation and Application of Derivatives",
+        "KC006:Function Analysis, Curve Sketching, and Extrema",
+        "KC007:Optimization Problems"
+      ],
+      "chain_2": [
+        "KC000:Limits and Continuity Analysis",
+        "KC001:Derivative Definition and Differentiability",
+        "KC002:Fundamental Differentiation Rules and Techniques",
+        "KC003:Interpretation and Application of Derivatives",
+        "KC008:Kinematics and Motion Analysis with Calculus"
+      ],
+      "chain_3": [
+        "KC000:Limits and Continuity Analysis",
+        "KC001:Derivative Definition and Differentiability",
+        "KC002:Fundamental Differentiation Rules and Techniques",
+        "KC005:Numerical Estimation of Derivatives"
+      ],
+      "chain_4": [
+        "KC000:Limits and Continuity Analysis",
+        "KC001:Derivative Definition and Differentiability",
+        "KC002:Fundamental Differentiation Rules and Techniques",
+        "KC016:Differential Equations: Definitions and Qualitative Analysis",
+        "KC017:Solving Differential Equations (Analytical and Numerical)",
+        "KC018:Modeling with Differential Equations"
+      ],
+      "chain_5": [
+        "KC000:Limits and Continuity Analysis",
+        "KC001:Derivative Definition and Differentiability",
+        "KC002:Fundamental Differentiation Rules and Techniques",
+        "KC022:Cross-Cutting Mathematical and Computational Skills for Calculus"
+      ],
+      "chain_6": [
+        "KC000:Limits and Continuity Analysis",
+        "KC001:Derivative Definition and Differentiability",
+        "KC004:Tangent Lines and Linear Approximations",
+        "KC003:Interpretation and Application of Derivatives",
+        "KC006:Function Analysis, Curve Sketching, and Extrema",
+        "KC007:Optimization Problems"
+      ],
+      "chain_7": [
+        "KC000:Limits and Continuity Analysis",
+        "KC001:Derivative Definition and Differentiability",
+        "KC004:Tangent Lines and Linear Approximations",
+        "KC003:Interpretation and Application of Derivatives",
+        "KC008:Kinematics and Motion Analysis with Calculus"
+      ],
+      "chain_8": [
+        "KC000:Limits and Continuity Analysis",
+        "KC010:Riemann Sums and the Definite Integral",
+        "KC011:Fundamental Theorem of Calculus and Total Change Theorem",
+        "KC012:Advanced Integration Techniques",
+        "KC014:Solving and Interpreting Integral Application Problems"
+      ],
+      "chain_9": [
+        "KC000:Limits and Continuity Analysis",
+        "KC010:Riemann Sums and the Definite Integral",
+        "KC011:Fundamental Theorem of Calculus and Total Change Theorem",
+        "KC013:Applications of Definite Integrals (Slicing Principle)"
+      ],
+      "chain_10": [
+        "KC000:Limits and Continuity Analysis",
+        "KC010:Riemann Sums and the Definite Integral",
+        "KC015:Numerical Integration Methods"
+      ],
+      "chain_11": [
+        "KC000:Limits and Continuity Analysis",
+        "KC019:Sequences and Series: Definitions and Convergence Tests",
+        "KC020:Taylor and Maclaurin Series/Polynomials",
+        "KC021:Power Series Operations and Applications"
+      ],
+      "chain_12": [
+        "KC000:Limits and Continuity Analysis",
+        "KC019:Sequences and Series: Definitions and Convergence Tests",
+        "KC021:Power Series Operations and Applications"
+      ],
+      "chain_13": [
+        "KC000:Limits and Continuity Analysis",
+        "KC022:Cross-Cutting Mathematical and Computational Skills for Calculus"
+      ],
+      "chain_14": [
+        "KC009:Antiderivatives and Indefinite Integrals",
+        "KC011:Fundamental Theorem of Calculus and Total Change Theorem",
+        "KC012:Advanced Integration Techniques",
+        "KC014:Solving and Interpreting Integral Application Problems"
+      ],
+      "chain_15": [
+        "KC009:Antiderivatives and Indefinite Integrals",
+        "KC011:Fundamental Theorem of Calculus and Total Change Theorem",
+        "KC013:Applications of Definite Integrals (Slicing Principle)"
+      ],
+      "chain_16": [
+        "KC009:Antiderivatives and Indefinite Integrals",
+        "KC017:Solving Differential Equations (Analytical and Numerical)",
+        "KC018:Modeling with Differential Equations"
+      ]
+    },
+    "nodes": [
+      {
+        "kc_id": "KC000",
+        "kc_label": "Limits and Continuity Analysis",
+        "kc_description": "Comprehend the intuitive and formal meaning of a limit, including one-sided limits, and interpret standard limit notation. Estimate limits graphically and numerically. Evaluate limits algebraically using direct substitution, simplification techniques (factoring, conjugates), and L'Hôpital's Rule for indeterminate forms (0/0, ∞/∞, etc.). Analyze limits at infinity to determine end behavior and identify horizontal asymptotes, comparing growth rates of functions. Define continuity at a point using the three formal conditions and identify types of discontinuities. Understand the hierarchical relationship between limits, continuity, and differentiability.",
+        "cognitive_type": "Understand, Evaluate, Analyze",
+        "complexity_level": "0.6",
+        "domain": "calculus",
+        "dependencies": [],
+        "dependents": [
+          "KC001",
+          "KC010",
+          "KC019",
+          "KC022"
+        ]
+      },
+      {
+        "kc_id": "KC001",
+        "kc_label": "Derivative Definition and Differentiability",
+        "kc_description": "Comprehend the formal limit definition of the derivative (f'(a) and f'(x)), its conceptual significance as instantaneous rate of change and slope of the tangent line. Understand common derivative notations. Calculate derivatives of elementary functions using the limit definition. Recognize and explain differentiability at a point, identifying reasons for non-differentiability (cusps, discontinuities, vertical tangents). Use the limit definition to test differentiability and analyze differentiability from graphical information.",
+        "cognitive_type": "Understand, Calculate, Analyze",
+        "complexity_level": "0.5",
+        "domain": "calculus",
+        "dependencies": [
+          "KC000"
+        ],
+        "dependents": [
+          "KC002",
+          "KC004"
+        ]
+      },
+      {
+        "kc_id": "KC002",
+        "kc_label": "Fundamental Differentiation Rules and Techniques",
+        "kc_description": "Apply rules for differentiating constants, power functions, exponential, logarithmic, and all six trigonometric functions. Apply the constant multiple, sum/difference, product, quotient, and chain rules. Perform implicit differentiation, correctly applying the chain rule for terms involving implicit functions. Differentiate inverse functions, including natural logarithm and inverse trigonometric functions, and apply the general inverse function derivative rule. Strategically apply multiple derivative rules in sequence to compute first or second derivatives of complex functions, including deriving formulas from the limit definition.",
+        "cognitive_type": "Apply, Calculate",
+        "complexity_level": "0.6",
+        "domain": "calculus",
+        "dependencies": [
+          "KC001"
+        ],
+        "dependents": [
+          "KC003",
+          "KC005",
+          "KC016",
+          "KC022"
+        ]
+      },
+      {
+        "kc_id": "KC003",
+        "kc_label": "Interpretation and Application of Derivatives",
+        "kc_description": "Interpret the numerical value, sign, and units of the first derivative as instantaneous rate of change and slope in various real-world contexts. Define the second derivative and interpret its meaning as the rate of change of the rate of change. Relate concavity (concave up/down) to the sign of the second derivative and the behavior of the first derivative. Use concavity to predict whether linear approximations will be over or underestimations. Distinguish between functions increasing/decreasing at increasing/decreasing/constant rates.",
+        "cognitive_type": "Interpret, Analyze",
+        "complexity_level": "0.6",
+        "domain": "calculus",
+        "dependencies": [
+          "KC002",
+          "KC004"
+        ],
+        "dependents": [
+          "KC006",
+          "KC008"
+        ]
+      },
+      {
+        "kc_id": "KC004",
+        "kc_label": "Tangent Lines and Linear Approximations",
+        "kc_description": "Understand the connection between the derivative and the slope of the tangent line. Formulate the equation of the tangent line to a function's graph at a given point. Understand and apply the principle of local linearity, using the tangent line (linear approximation) to estimate function values near the point of tangency.",
+        "cognitive_type": "Understand, Apply, Construct",
+        "complexity_level": "0.5",
+        "domain": "calculus",
+        "dependencies": [
+          "KC001"
+        ],
+        "dependents": [
+          "KC003"
+        ]
+      },
+      {
+        "kc_id": "KC005",
+        "kc_label": "Numerical Estimation of Derivatives",
+        "kc_description": "Approximate the value of the first derivative at a point from discrete data (e.g., tables) using methods like the central difference. Estimate derivative values graphically by sketching tangent lines and estimating their slopes. Calculate numerical values of first or second derivatives at specific points, including for implicitly defined or abstractly defined functions.",
+        "cognitive_type": "Estimate, Calculate",
+        "complexity_level": "0.4",
+        "domain": "calculus",
+        "dependencies": [
+          "KC002"
+        ],
+        "dependents": []
+      },
+      {
+        "kc_id": "KC006",
+        "kc_label": "Function Analysis, Curve Sketching, and Extrema",
+        "kc_description": "Define and determine critical numbers and potential inflection points algebraically. Analyze intervals of increase/decrease (monotonicity) using the first derivative and apply the First Derivative Test to classify local extrema. Analyze intervals of concavity and identify inflection points using the second derivative and apply the Second Derivative Test. Infer properties of a function (monotonicity, concavity, extrema, inflection points, long-term behavior) by interpreting graphs of f, f', and f''. Sketch plausible graphs of a function given information from its derivatives or by sketching derivative graphs from the original function. Determine absolute maximum and minimum values of a continuous function on a closed interval or over an entire domain. Construct functions that satisfy given properties related to derivatives and function behavior.",
+        "cognitive_type": "Define, Analyze, Construct, Sketch",
+        "complexity_level": "0.7",
+        "domain": "calculus",
+        "dependencies": [
+          "KC003"
+        ],
+        "dependents": [
+          "KC007"
+        ]
+      },
+      {
+        "kc_id": "KC007",
+        "kc_label": "Optimization Problems",
+        "kc_description": "Formulate real-world problems as mathematical optimization problems, including defining variables, objective functions, constraint equations, and feasible domains. Apply calculus techniques (derivatives, critical numbers, tests for extrema) to solve optimization problems and interpret the solution in the context of the original problem.",
+        "cognitive_type": "Formulate, Solve, Interpret",
+        "complexity_level": "0.7",
+        "domain": "calculus",
+        "dependencies": [
+          "KC006"
+        ],
+        "dependents": []
+      },
+      {
+        "kc_id": "KC008",
+        "kc_label": "Kinematics and Motion Analysis with Calculus",
+        "kc_description": "Apply the concepts of position, velocity, and acceleration as a function, its first derivative, and its second derivative, respectively, to describe, analyze, and interpret the motion of an object over time. Understand that the definite integral of velocity represents total change in position (displacement) or total distance traveled. Distinguish between total distance traveled and net change in position. Calculate these quantities from velocity functions using integrals. Analyze and sketch position/motion from velocity graphs. Relate velocity and acceleration to the concavity of the position function.",
+        "cognitive_type": "Model, Analyze, Calculate, Interpret",
+        "complexity_level": "0.6",
+        "domain": "calculus",
+        "dependencies": [
+          "KC003"
+        ],
+        "dependents": []
+      },
+      {
+        "kc_id": "KC009",
+        "kc_label": "Antiderivatives and Indefinite Integrals",
+        "kc_description": "Define an antiderivative and the general antiderivative (indefinite integral) of a function, understanding the constant of integration. Apply basic antidifferentiation rules for polynomial (power rule), trigonometric, exponential, and inverse trigonometric functions (including 1/x). Solve initial value problems by using initial conditions to determine the specific constant of integration.",
+        "cognitive_type": "Define, Apply, Solve",
+        "complexity_level": "0.5",
+        "domain": "calculus",
+        "dependencies": [],
+        "dependents": [
+          "KC011",
+          "KC017"
+        ]
+      },
+      {
+        "kc_id": "KC010",
+        "kc_label": "Riemann Sums and the Definite Integral",
+        "kc_description": "Comprehend Riemann sums as methods of approximating the area/net signed area under a curve. Use sigma notation to represent sums. Calculate Riemann sum parameters (Δx, x_i) and compute various types of Riemann sums (left, right, midpoint) from functions, tabular data, or graphs. Analyze the accuracy of Riemann sums and sketch their rectangles. Explain the relationship between the number of subintervals and Riemann sum accuracy. Define the definite integral as the limit of Riemann sums. Interpret the definite integral as the net signed area. Evaluate definite integrals geometrically using known area formulas. Apply properties of definite integrals.",
+        "cognitive_type": "Understand, Compute, Analyze, Define, Interpret, Apply",
+        "complexity_level": "0.6",
+        "domain": "calculus",
+        "dependencies": [
+          "KC000"
+        ],
+        "dependents": [
+          "KC011",
+          "KC015"
+        ]
+      },
+      {
+        "kc_id": "KC011",
+        "kc_label": "Fundamental Theorem of Calculus and Total Change Theorem",
+        "kc_description": "Understand and apply both parts of the Fundamental Theorem of Calculus (FTC). Use FTC Part 2 to exactly calculate definite integrals by evaluating antiderivatives at limits of integration. Apply FTC Part 1 to differentiate functions defined by integrals with constant or variable limits of integration (including the Chain Rule). Apply the Total Change Theorem to interpret definite integrals of rates of change as the total change in the original quantity over an interval.",
+        "cognitive_type": "Understand, Apply, Evaluate, Differentiate",
+        "complexity_level": "0.6",
+        "domain": "calculus",
+        "dependencies": [
+          "KC010",
+          "KC009"
+        ],
+        "dependents": [
+          "KC012",
+          "KC013"
+        ]
+      },
+      {
+        "kc_id": "KC012",
+        "kc_label": "Advanced Integration Techniques",
+        "kc_description": "Evaluate indefinite and definite integrals using u-substitution, integration by parts, and partial fraction decomposition. Strategically analyze a given integral to select and apply the most effective analytical antidifferentiation technique. Understand the limitations of analytical integration.",
+        "cognitive_type": "Evaluate, Apply, Select",
+        "complexity_level": "0.7",
+        "domain": "calculus",
+        "dependencies": [
+          "KC011"
+        ],
+        "dependents": [
+          "KC014"
+        ]
+      },
+      {
+        "kc_id": "KC013",
+        "kc_label": "Applications of Definite Integrals (Slicing Principle)",
+        "kc_description": "Understand the slicing principle to formulate definite integrals by summing infinitesimal slices, relating discrete models to continuous distributions. Analyze and visualize geometric regions and physical setups, and strategically choose the integration variable and slicing method. Formulate definite integrals for area between curves, arc length, volume of solids of revolution (disk/washer methods, including non-coordinate axes), total mass of objects with varying density, work done by varying force (e.g., Hooke's Law, pumping liquids), hydrostatic force, and center of mass of continuous systems. Decompose complex problems into multiple integrals when necessary.",
+        "cognitive_type": "Understand, Formulate, Analyze, Select",
+        "complexity_level": "0.8",
+        "domain": "calculus",
+        "dependencies": [
+          "KC011"
+        ],
+        "dependents": []
+      },
+      {
+        "kc_id": "KC014",
+        "kc_label": "Solving and Interpreting Integral Application Problems",
+        "kc_description": "Evaluate definite integrals arising from various real-world applications (e.g., area, volume, mass, work, force, average value). Interpret the physical meaning, significance, and units of integral results in context. Solve multi-step and complex application problems by integrating multiple concepts and procedures, including handling piecewise-defined functions and using geometric area calculations. Calculate and interpret the average value of a function.",
+        "cognitive_type": "Solve, Evaluate, Interpret",
+        "complexity_level": "0.7",
+        "domain": "calculus",
+        "dependencies": [
+          "KC012"
+        ],
+        "dependents": []
+      },
+      {
+        "kc_id": "KC015",
+        "kc_label": "Numerical Integration Methods",
+        "kc_description": "Define and calculate approximations of definite integrals using Riemann sums (Left, Right, Midpoint), the Trapezoid Rule, and Simpson's Rule for given functions or tabular data. Analyze and interpret the accuracy and error (over/underestimation) of these approximations based on function monotonicity and concavity. Utilize computational tools (applets, software) for numerical integration.",
+        "cognitive_type": "Approximate, Analyze, Utilize",
+        "complexity_level": "0.6",
+        "domain": "calculus",
+        "dependencies": [
+          "KC010"
+        ],
+        "dependents": []
+      },
+      {
+        "kc_id": "KC016",
+        "kc_label": "Differential Equations: Definitions and Qualitative Analysis",
+        "kc_description": "Define differential equations, their solutions, and initial value problems (IVPs), classifying them by order and autonomy. Verify if a given function is a solution to a differential equation or IVP. Construct and interpret slope fields to sketch approximate solution curves and understand qualitative behavior (flow, long-term trends). Analyze equilibrium solutions and their stability (stable/unstable) using slope fields or phase line analysis. Predict and interpret the long-term behavior of solutions. Determine the valid domain for solutions. Interpret graphs of rate vs. dependent variable.",
+        "cognitive_type": "Define, Classify, Verify, Construct, Interpret, Analyze, Predict",
+        "complexity_level": "0.7",
+        "domain": "calculus",
+        "dependencies": [
+          "KC002"
+        ],
+        "dependents": [
+          "KC017"
+        ]
+      },
+      {
+        "kc_id": "KC017",
+        "kc_label": "Solving Differential Equations (Analytical and Numerical)",
+        "kc_description": "Identify and algebraically solve separable differential equations, including solving initial value problems analytically to find unique particular solutions. Apply Euler's method and Improved Euler's method to numerically approximate solutions to IVPs. Analyze and understand the error in numerical approximations and its dependence on step size. Explain the relationship between Euler's method and Riemann sums, and why autonomous DEs are inherently separable.",
+        "cognitive_type": "Solve, Apply, Analyze, Explain",
+        "complexity_level": "0.7",
+        "domain": "calculus",
+        "dependencies": [
+          "KC009",
+          "KC016"
+        ],
+        "dependents": [
+          "KC018"
+        ]
+      },
+      {
+        "kc_id": "KC018",
+        "kc_label": "Modeling with Differential Equations",
+        "kc_description": "Formulate first-order differential equations from real-world scenarios, identifying contributing rates of change ('rate in - rate out'). Analyze and solve exponential growth and logistic growth models, including adapting them for external factors like harvesting. Interpret and apply differential equation solutions in context, evaluating the realism and limitations of models. Determine unknown parameters or constants of proportionality from given data points or conditions.",
+        "cognitive_type": "Model, Formulate, Analyze, Interpret, Apply, Evaluate",
+        "complexity_level": "0.8",
+        "domain": "calculus",
+        "dependencies": [
+          "KC017"
+        ],
+        "dependents": []
+      },
+      {
+        "kc_id": "KC019",
+        "kc_label": "Sequences and Series: Definitions and Convergence Tests",
+        "kc_description": "Define sequences and infinite series, use appropriate notation, and generate terms or partial sums. Determine sequence and series convergence or divergence using limits and graphical interpretation. Understand and apply properties of geometric series, including sum formulas and convergence conditions. Apply various convergence tests for infinite series, including the Divergence Test, Integral Test (with p-series), Direct and Limit Comparison Tests, Ratio Test, Root Test, and Alternating Series Test (including error estimation). Distinguish between absolute and conditional convergence. Strategically select and justify the appropriate convergence test for a given series.",
+        "cognitive_type": "Define, Analyze, Apply, Justify",
+        "complexity_level": "0.8",
+        "domain": "calculus",
+        "dependencies": [
+          "KC000"
+        ],
+        "dependents": [
+          "KC020",
+          "KC021"
+        ]
+      },
+      {
+        "kc_id": "KC020",
+        "kc_label": "Taylor and Maclaurin Series/Polynomials",
+        "kc_description": "Construct n-th order Taylor and Maclaurin polynomials for functions by calculating higher-order derivatives and applying the Taylor polynomial formula. Understand their purpose in approximating functions and interpret their graphical behavior. Construct the complete Taylor and Maclaurin series for a given function and understand how they converge to the original function within their interval of convergence. Estimate the error of Taylor polynomial approximations using the Lagrange Remainder (Taylor's Remainder Theorem) and determine the minimum order required for a specified accuracy.",
+        "cognitive_type": "Construct, Understand, Estimate",
+        "complexity_level": "0.7",
+        "domain": "calculus",
+        "dependencies": [
+          "KC019"
+        ],
+        "dependents": [
+          "KC021"
+        ]
+      },
+      {
+        "kc_id": "KC021",
+        "kc_label": "Power Series Operations and Applications",
+        "kc_description": "Define a power series, including its general form and center. Determine its radius and interval of convergence using the Ratio Test and by testing endpoints. Perform operations on power series, including differentiation, integration, and substitution, to derive new series while preserving the radius of convergence. Recognize and recall common power series expansions (e.g., e^x, sin(x), cos(x), 1/(1-x)). Apply power series methods to approximate definite integrals or find solutions to differential equations.",
+        "cognitive_type": "Define, Determine, Apply, Recognize",
+        "complexity_level": "0.8",
+        "domain": "calculus",
+        "dependencies": [
+          "KC019",
+          "KC020"
+        ],
+        "dependents": []
+      },
+      {
+        "kc_id": "KC022",
+        "kc_label": "Cross-Cutting Mathematical and Computational Skills for Calculus",
+        "kc_description": "Apply foundational algebraic and trigonometric skills necessary for calculus, including manipulating and simplifying expressions (e.g., rewriting roots/fractions, factoring, applying identities). Determine function and derivative domains. Understand and differentiate between various mathematical notations in calculus. Utilize technology (graphing utilities, computer algebra systems) to find approximate solutions, compute numerical approximations, or verify symbolic results in calculus problems. Analyze the impact of periodic terms on function behavior in real-world modeling contexts.",
+        "cognitive_type": "Apply, Utilize, Interpret, Analyze",
+        "complexity_level": "0.5",
+        "domain": "calculus",
+        "dependencies": [
+          "KC002",
+          "KC000"
+        ],
+        "dependents": []
+      }
+    ],
+    "edges": [
+      {
+        "from": "KC000:Limits and Continuity Analysis",
+        "to": "KC001:Derivative Definition and Differentiability",
+        "relationship": "prerequisite",
+        "reasoning": "The definition of the derivative (KC001) is fundamentally a limit (KC000). Understanding limits is essential for grasping the concept of instantaneous rate of change and the formal definition of the derivative."
+      },
+      {
+        "from": "KC001:Derivative Definition and Differentiability",
+        "to": "KC002:Fundamental Differentiation Rules and Techniques",
+        "relationship": "prerequisite",
+        "reasoning": "Once the definition of the derivative is understood (KC001), students can then learn and apply the shortcut rules (KC002) for computing derivatives."
+      },
+      {
+        "from": "KC001:Derivative Definition and Differentiability",
+        "to": "KC004:Tangent Lines and Linear Approximations",
+        "relationship": "prerequisite",
+        "reasoning": "The concept of a tangent line's slope is directly derived from the definition of the derivative (KC001) as the instantaneous rate of change. Linear approximation uses this tangent line."
+      },
+      {
+        "from": "KC002:Fundamental Differentiation Rules and Techniques",
+        "to": "KC003:Interpretation and Application of Derivatives",
+        "relationship": "prerequisite",
+        "reasoning": "Interpreting the meaning and application of derivatives (KC003) relies on the ability to compute derivatives using the rules (KC002) and understand what those derivatives represent (rate of change, slope)."
+      },
+      {
+        "from": "KC002:Fundamental Differentiation Rules and Techniques",
+        "to": "KC005:Numerical Estimation of Derivatives",
+        "relationship": "prerequisite",
+        "reasoning": "Numerical estimation of derivatives (KC005) often involves using difference quotients, which are related to the derivative concept, and understanding how to approximate derivative values is built upon knowing how to compute them accurately (KC002)."
+      },
+      {
+        "from": "KC003:Interpretation and Application of Derivatives",
+        "to": "KC006:Function Analysis, Curve Sketching, and Extrema",
+        "relationship": "prerequisite",
+        "reasoning": "Analyzing function behavior, curve sketching, and finding extrema (KC006) heavily relies on interpreting the meaning and sign of the first and second derivatives (KC003) to determine intervals of increase/decrease and concavity."
+      },
+      {
+        "from": "KC004:Tangent Lines and Linear Approximations",
+        "to": "KC003:Interpretation and Application of Derivatives",
+        "relationship": "prerequisite",
+        "reasoning": "Understanding the connection between the derivative and tangent lines (KC004) is foundational to interpreting the derivative's slope and its implications for function behavior, which is part of KC003."
+      },
+      {
+        "from": "KC006:Function Analysis, Curve Sketching, and Extrema",
+        "to": "KC007:Optimization Problems",
+        "relationship": "prerequisite",
+        "reasoning": "Optimization problems (KC007) involve finding extrema (maxima/minima), which is a core skill taught in function analysis and curve sketching (KC006)."
+      },
+      {
+        "from": "KC003:Interpretation and Application of Derivatives",
+        "to": "KC008:Kinematics and Motion Analysis with Calculus",
+        "relationship": "prerequisite",
+        "reasoning": "Kinematics and motion analysis (KC008) directly apply the interpretation of the first and second derivatives as velocity and acceleration, respectively, and their rates of change."
+      },
+      {
+        "from": "KC000:Limits and Continuity Analysis",
+        "to": "KC010:Riemann Sums and the Definite Integral",
+        "relationship": "prerequisite",
+        "reasoning": "Understanding the concept of a limit (KC000) is crucial for defining the definite integral as the limit of Riemann sums (KC010)."
+      },
+      {
+        "from": "KC010:Riemann Sums and the Definite Integral",
+        "to": "KC011:Fundamental Theorem of Calculus and Total Change Theorem",
+        "relationship": "prerequisite",
+        "reasoning": "The Fundamental Theorem of Calculus (KC011) builds directly upon the definition of the definite integral as the limit of Riemann sums (KC010), providing a method to evaluate it."
+      },
+      {
+        "from": "KC009:Antiderivatives and Indefinite Integrals",
+        "to": "KC011:Fundamental Theorem of Calculus and Total Change Theorem",
+        "relationship": "prerequisite",
+        "reasoning": "FTC Part 2 (KC011) requires the ability to find antiderivatives (KC009) to evaluate definite integrals."
+      },
+      {
+        "from": "KC011:Fundamental Theorem of Calculus and Total Change Theorem",
+        "to": "KC012:Advanced Integration Techniques",
+        "relationship": "prerequisite",
+        "reasoning": "Advanced integration techniques (KC012) are methods for finding antiderivatives, which are then used with FTC Part 2 (KC011) to evaluate definite integrals."
+      },
+      {
+        "from": "KC011:Fundamental Theorem of Calculus and Total Change Theorem",
+        "to": "KC013:Applications of Definite Integrals (Slicing Principle)",
+        "relationship": "prerequisite",
+        "reasoning": "The slicing principle (KC013) involves formulating definite integrals, which are then evaluated using the Fundamental Theorem of Calculus (KC011)."
+      },
+      {
+        "from": "KC012:Advanced Integration Techniques",
+        "to": "KC014:Solving and Interpreting Integral Application Problems",
+        "relationship": "prerequisite",
+        "reasoning": "Solving and interpreting integral application problems (KC014) often requires the use of advanced integration techniques (KC012) to evaluate the definite integrals that model these applications."
+      },
+      {
+        "from": "KC010:Riemann Sums and the Definite Integral",
+        "to": "KC015:Numerical Integration Methods",
+        "relationship": "prerequisite",
+        "reasoning": "Numerical integration methods (KC015) are approximations of the definite integral, which is defined as the limit of Riemann sums (KC010). Understanding Riemann sums is foundational."
+      },
+      {
+        "from": "KC002:Fundamental Differentiation Rules and Techniques",
+        "to": "KC016:Differential Equations: Definitions and Qualitative Analysis",
+        "relationship": "prerequisite",
+        "reasoning": "Differential equations (KC016) involve derivatives, and the ability to compute derivatives using rules (KC002) is essential for understanding and verifying solutions."
+      },
+      {
+        "from": "KC009:Antiderivatives and Indefinite Integrals",
+        "to": "KC017:Solving Differential Equations (Analytical and Numerical)",
+        "relationship": "prerequisite",
+        "reasoning": "Solving separable differential equations (KC017) involves antidifferentiation and integration techniques, which are introduced with antiderivatives and indefinite integrals (KC009)."
+      },
+      {
+        "from": "KC016:Differential Equations: Definitions and Qualitative Analysis",
+        "to": "KC017:Solving Differential Equations (Analytical and Numerical)",
+        "relationship": "prerequisite",
+        "reasoning": "Understanding the definitions and qualitative analysis of differential equations (KC016) is necessary before learning specific methods for solving them (KC017)."
+      },
+      {
+        "from": "KC017:Solving Differential Equations (Analytical and Numerical)",
+        "to": "KC018:Modeling with Differential Equations",
+        "relationship": "prerequisite",
+        "reasoning": "Modeling with differential equations (KC018) involves formulating and solving them, building upon the analytical and numerical solving techniques learned in KC017."
+      },
+      {
+        "from": "KC000:Limits and Continuity Analysis",
+        "to": "KC019:Sequences and Series: Definitions and Convergence Tests",
+        "relationship": "prerequisite",
+        "reasoning": "The concept of convergence, fundamental to series (KC019), is an extension of the idea of limits (KC000) taken to infinity."
+      },
+      {
+        "from": "KC019:Sequences and Series: Definitions and Convergence Tests",
+        "to": "KC020:Taylor and Maclaurin Series/Polynomials",
+        "relationship": "prerequisite",
+        "reasoning": "Taylor and Maclaurin series (KC020) are a specific type of infinite series, and understanding the convergence of general series (KC019) is necessary to understand the convergence of these specific series."
+      },
+      {
+        "from": "KC019:Sequences and Series: Definitions and Convergence Tests",
+        "to": "KC021:Power Series Operations and Applications",
+        "relationship": "prerequisite",
+        "reasoning": "Power series (KC021) are a type of series, and understanding convergence tests for general series (KC019) is vital for determining the radius and interval of convergence for power series."
+      },
+      {
+        "from": "KC020:Taylor and Maclaurin Series/Polynomials",
+        "to": "KC021:Power Series Operations and Applications",
+        "relationship": "prerequisite",
+        "reasoning": "While both deal with series, constructing Taylor/Maclaurin polynomials and series (KC020) involves understanding derivatives and series concepts. Power series operations (KC021) build on this by introducing operations like differentiation and integration on series, which is a more advanced manipulation."
+      },
+      {
+        "from": "KC002:Fundamental Differentiation Rules and Techniques",
+        "to": "KC022:Cross-Cutting Mathematical and Computational Skills for Calculus",
+        "relationship": "prerequisite",
+        "reasoning": "The ability to apply derivative rules (KC002) is a core calculus skill that underpins many of the algebraic manipulations and understanding of notations described in KC022."
+      },
+      {
+        "from": "KC000:Limits and Continuity Analysis",
+        "to": "KC022:Cross-Cutting Mathematical and Computational Skills for Calculus",
+        "relationship": "prerequisite",
+        "reasoning": "Understanding the domain of functions and derivatives (KC022) is closely tied to the analysis of limits and continuity (KC000), especially in identifying points where functions or their derivatives are undefined."
+      }
+    ],
+    "analysis_metadata": {
+      "total_nodes": 23,
+      "total_edges": 26,
+      "total_chains": 16,
+      "model_used": "gemini-2.5-flash-lite",
+      "analysis_timestamp": "2025-07-23T17:42:22.915130",
+      "total_kcs_analyzed": 23
+    }
+  },
+  "is_acyclic": true,
+  "cycles_found": [],
+  "validation_status": "valid"
+}

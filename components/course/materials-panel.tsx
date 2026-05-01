@@ -19,7 +19,15 @@ import {
   Link as LinkIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import type { CourseMaterial, CourseWeek, HoverState, OutcomeCoverage } from "@/lib/course-types"
+
+export interface SuggestedMaterial {
+  id: string
+  title: string
+  summary: string
+  reason: string
+}
 
 interface MaterialsPanelProps {
   materials: CourseMaterial[]
@@ -28,6 +36,8 @@ interface MaterialsPanelProps {
   hoverState?: HoverState
   onHoverChange?: (state: HoverState) => void
   onMaterialClick?: (materialId: string) => void
+  onMaterialDrop?: (materialId: string) => void
+  onMaterialAdd?: (suggestion: SuggestedMaterial) => void
 }
 
 // Mock suggested materials for missing coverage
@@ -55,6 +65,8 @@ export function MaterialsPanel({
   hoverState,
   onHoverChange,
   onMaterialClick,
+  onMaterialDrop,
+  onMaterialAdd,
 }: MaterialsPanelProps) {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all")
 
@@ -230,11 +242,47 @@ export function MaterialsPanel({
               {/* Low relevance actions */}
               {lowRelevance && (
                 <div className="flex gap-2 mt-2 pt-2 border-t border-border">
-                  <Button variant="outline" size="sm" className="h-6 text-[10px]">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-[10px]"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (onMaterialDrop) {
+                        onMaterialDrop(material.id)
+                      }
+                      toast.success(`Removed "${material.name.replace(/\.pdf$/i, "")}"`, {
+                        description: "Dropped from this course's reading list.",
+                      })
+                    }}
+                  >
                     <X className="h-2.5 w-2.5 mr-1" />
                     Drop from course
                   </Button>
-                  <Button variant="outline" size="sm" className="h-6 text-[10px]">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-[10px]"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // Pick a deterministic outcome based on the material id hash
+                      // — for the demo this is enough to make the toast believable.
+                      const outcomeList =
+                        outcomes.length > 0
+                          ? outcomes.map((o) => o.outcome)
+                          : ["Outcome 1", "Outcome 2", "Outcome 3"]
+                      const idx =
+                        Math.abs(
+                          [...material.id].reduce((a, c) => a + c.charCodeAt(0), 0)
+                        ) % outcomeList.length
+                      const outcome = outcomeList[idx]
+                      const truncated =
+                        outcome.length > 60 ? outcome.slice(0, 60) + "…" : outcome
+                      toast.success(`Mapped to outcome`, {
+                        description: truncated,
+                      })
+                    }}
+                  >
                     <LinkIcon className="h-2.5 w-2.5 mr-1" />
                     Map to outcome
                   </Button>
@@ -265,7 +313,19 @@ export function MaterialsPanel({
             <p className="text-[10px] text-accent mb-2">
               {suggestion.reason}
             </p>
-            <Button variant="outline" size="sm" className="h-6 text-[10px]">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 text-[10px]"
+              onClick={() => {
+                if (onMaterialAdd) {
+                  onMaterialAdd(suggestion)
+                }
+                toast.success(`Added "${suggestion.title.replace(/\.pdf$/i, "")}"`, {
+                  description: "Now appears in your course materials.",
+                })
+              }}
+            >
               <Plus className="h-2.5 w-2.5 mr-1" />
               Add to course
             </Button>

@@ -20,7 +20,7 @@ import {
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-type ExportFormat = "markdown" | "pdf" | "canvas" | "link"
+type ExportFormat = "markdown" | "canvas" | "link"
 
 interface ExportOption {
   id: ExportFormat
@@ -34,12 +34,6 @@ const exportOptions: ExportOption[] = [
     id: "markdown",
     name: "Markdown Syllabus",
     description: "Plain text format, easy to edit and version control",
-    icon: <FileText className="h-5 w-5" />,
-  },
-  {
-    id: "pdf",
-    name: "PDF Document",
-    description: "Formatted document ready to print or share",
     icon: <FileText className="h-5 w-5" />,
   },
   {
@@ -86,31 +80,21 @@ export default function ExportPage() {
   }
 
   const handleDownload = () => {
-    // In production, this would trigger actual file download
     const filename =
-      selectedFormat === "markdown"
-        ? "course-syllabus.md"
-        : selectedFormat === "pdf"
-        ? "course-syllabus.pdf"
-        : "canvas-import.json"
+      selectedFormat === "markdown" ? "course-syllabus.md" : "canvas-import.json"
 
-    // Create mock download
     const mockContent =
       selectedFormat === "markdown"
         ? "# Machine Learning Systems\n\n## Week 1: Introduction to Distributed Training\n..."
-        : selectedFormat === "canvas"
-        ? JSON.stringify({ course: "ML Systems", weeks: 14 }, null, 2)
-        : ""
+        : JSON.stringify({ course: "ML Systems", weeks: 14 }, null, 2)
 
-    if (selectedFormat !== "pdf") {
-      const blob = new Blob([mockContent], { type: "text/plain" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = filename
-      a.click()
-      URL.revokeObjectURL(url)
-    }
+    const blob = new Blob([mockContent], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -246,12 +230,7 @@ export default function ExportPage() {
                   <div className="flex flex-col items-center gap-4">
                     <Button size="lg" onClick={handleDownload}>
                       <Download className="mr-2 h-4 w-4" />
-                      Download{" "}
-                      {selectedFormat === "markdown"
-                        ? ".md"
-                        : selectedFormat === "pdf"
-                        ? ".pdf"
-                        : ".json"}
+                      Download {selectedFormat === "markdown" ? ".md" : ".json"}
                     </Button>
                     <Button variant="ghost" onClick={() => setExportComplete(false)}>
                       Export another format

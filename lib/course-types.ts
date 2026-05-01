@@ -89,6 +89,14 @@ export interface GapWarning {
   }
 }
 
+export interface LearningPath {
+  id: string                                              // "path_1" … "path_10"
+  kcSequence: { kcId: string; kcLabel: string }[]
+  reasoning: string
+  estimatedHours: string
+  iteration: number
+}
+
 export interface CoursePlan {
   id: string
   courseId: string
@@ -97,6 +105,9 @@ export interface CoursePlan {
   outcomeCoverage: OutcomeCoverage[]
   gapWarnings: GapWarning[]
   generatedAt: Date
+  learningPaths?: LearningPath[]
+  selectedPathId?: string
+  templateSource?: "calculus" | "ml-systems"
 }
 
 export interface CohortSignal {

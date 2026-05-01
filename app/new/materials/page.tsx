@@ -23,6 +23,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import type { CourseMaterial, MaterialTag, CourseSettings } from "@/lib/course-types"
+import { pickConceptsForFile, calculusChapters, type CourseTemplate } from "@/lib/optimizer-data"
 
 export default function MaterialsUploadPage() {
   const router = useRouter()
@@ -38,49 +39,47 @@ export default function MaterialsUploadPage() {
     }
   }, [])
 
-  const simulateUpload = useCallback((fileName: string) => {
-    const newMaterial: CourseMaterial = {
-      id: `mat-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      name: fileName,
-      size: `${Math.floor(Math.random() * 3000 + 500)} KB`,
-      status: "uploading",
-      tag: "core",
-    }
+  const courseTemplate: CourseTemplate = (courseSettings?.title ?? "")
+    .toLowerCase()
+    .includes("calculus")
+    ? "calculus"
+    : (courseSettings?.title ?? "").toLowerCase().match(/(ml|machine learning|systems)/)
+    ? "ml-systems"
+    : "generic"
 
-    setMaterials((prev) => [...prev, newMaterial])
+  const simulateUpload = useCallback(
+    (fileName: string, template: CourseTemplate) => {
+      const newMaterial: CourseMaterial = {
+        id: `mat-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name: fileName,
+        size: `${Math.floor(Math.random() * 3000 + 500)} KB`,
+        status: "uploading",
+        tag: "core",
+      }
 
-    // Simulate upload progress
-    setTimeout(() => {
-      setMaterials((prev) =>
-        prev.map((m) =>
-          m.id === newMaterial.id ? { ...m, status: "processing" as const } : m
+      setMaterials((prev) => [...prev, newMaterial])
+
+      setTimeout(() => {
+        setMaterials((prev) =>
+          prev.map((m) =>
+            m.id === newMaterial.id ? { ...m, status: "processing" as const } : m
+          )
         )
-      )
-    }, 600)
+      }, 600)
 
-    // Simulate extraction complete with mock concepts
-    setTimeout(() => {
-      const mockConcepts = [
-        "distributed training",
-        "gradient aggregation",
-        "parameter servers",
-        "model parallelism",
-        "data parallelism",
-        "synchronous SGD",
-      ]
-      const extractedConcepts = mockConcepts
-        .sort(() => Math.random() - 0.5)
-        .slice(0, Math.floor(Math.random() * 3) + 2)
-
-      setMaterials((prev) =>
-        prev.map((m) =>
-          m.id === newMaterial.id
-            ? { ...m, status: "complete" as const, extractedConcepts }
-            : m
+      setTimeout(() => {
+        const extractedConcepts = pickConceptsForFile(fileName, template)
+        setMaterials((prev) =>
+          prev.map((m) =>
+            m.id === newMaterial.id
+              ? { ...m, status: "complete" as const, extractedConcepts }
+              : m
+          )
         )
-      )
-    }, 1800)
-  }, [])
+      }, 1800)
+    },
+    []
+  )
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -90,17 +89,17 @@ export default function MaterialsUploadPage() {
       const files = Array.from(e.dataTransfer.files)
       files.forEach((file) => {
         if (file.name.match(/\.pdf$/i)) {
-          simulateUpload(file.name)
+          simulateUpload(file.name, courseTemplate)
         }
       })
     },
-    [simulateUpload]
+    [simulateUpload, courseTemplate]
   )
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     files.forEach((file) => {
-      simulateUpload(file.name)
+      simulateUpload(file.name, courseTemplate)
     })
   }
 
@@ -121,14 +120,18 @@ export default function MaterialsUploadPage() {
   }
 
   const useSampleMaterials = () => {
-    const sampleFiles = [
-      "Scaling Distributed ML with System Relaxations.pdf",
-      "MLSys - Model Serving Chapter.pdf",
-      "Data Parallel Training - Survey.pdf",
-      "ZeRO - Memory Optimizations.pdf",
-    ]
+    const isCalculus = courseTemplate === "calculus"
+    const sampleFiles = isCalculus
+      ? calculusChapters.map((c) => c.fileName)
+      : [
+          "Scaling Distributed ML with System Relaxations.pdf",
+          "MLSys - Model Serving Chapter.pdf",
+          "Data Parallel Training - Survey.pdf",
+          "ZeRO - Memory Optimizations.pdf",
+        ]
+    const template: CourseTemplate = isCalculus ? "calculus" : "ml-systems"
     sampleFiles.forEach((name, i) => {
-      setTimeout(() => simulateUpload(name), i * 300)
+      setTimeout(() => simulateUpload(name, template), i * 300)
     })
   }
 
@@ -286,7 +289,11 @@ export default function MaterialsUploadPage() {
                   size="sm"
                 >
                   <FileText className="mr-2 h-4 w-4" />
-                  Use sample materials (ML Systems course)
+                  Use sample materials (
+                  {courseTemplate === "calculus"
+                    ? "Calculus textbook · 8 chapters"
+                    : "ML Systems papers"}
+                  )
                 </Button>
               )}
             </CardContent>

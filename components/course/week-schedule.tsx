@@ -24,9 +24,66 @@ import {
   X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import { ProblemSetModal } from "./problem-set-modal"
 import { sampleProblemSets, getSuggestedReadings, type SuggestedReading } from "@/lib/mock-course-data"
-import type { CourseWeek, HoverState, ProblemSet } from "@/lib/course-types"
+import type { CourseWeek, HoverState, ProblemSet, WeekReading } from "@/lib/course-types"
+
+// Topic-keyed Bloom-style discussion prompts for the "Suggest 3" button.
+function pickDiscussionPrompts(topic: string, focus: string): string[] {
+  const hay = `${topic} ${focus}`.toLowerCase()
+  const banks: { kw: string[]; prompts: string[] }[] = [
+    { kw: ["limit", "continuity"], prompts: [
+      "Where does the intuitive notion of a limit break down, and why do we need the formal ε-δ definition?",
+      "Identify a real-world scenario where a function fails one of the three continuity conditions.",
+      "How does L'Hôpital's Rule generalize the limit definition of the derivative?",
+    ]},
+    { kw: ["derivative", "differen", "tangent"], prompts: [
+      "Why is the limit definition of the derivative more powerful than rules like the power rule?",
+      "Compare how a physicist, an economist, and a biologist would interpret the same derivative value.",
+      "Construct a function that is continuous everywhere but not differentiable at one point. Justify.",
+    ]},
+    { kw: ["integral", "integration", "riemann", "ftc"], prompts: [
+      "Explain how Riemann sums make the leap from finite arithmetic to continuous accumulation.",
+      "Why is the Fundamental Theorem of Calculus considered the conceptual bridge of single-variable calculus?",
+      "Sketch a definite integral problem where antiderivative methods fail and numerical methods are required.",
+    ]},
+    { kw: ["series", "sequence", "taylor"], prompts: [
+      "When does a Taylor polynomial give a useful approximation, and when does it break down?",
+      "Compare convergence diagnostics: ratio test vs comparison test — when does each shine?",
+      "Construct a function whose Taylor series converges but converges to the wrong value.",
+    ]},
+    { kw: ["differential equation", "ode", " ode"], prompts: [
+      "When is qualitative analysis (slope fields, equilibria) preferable to solving an ODE analytically?",
+      "Pick a real-world quantity (population, drug concentration, charge) — model it with a separable ODE.",
+      "Why might Euler's method fail catastrophically on a stiff ODE, and what's the practical fix?",
+    ]},
+    { kw: ["distributed training", "parallel", "all-reduce", "parameter server"], prompts: [
+      "Trace a single gradient through ring all-reduce vs a parameter server — where can each fail?",
+      "When would you accept staleness in async SGD over the latency cost of synchronous training?",
+      "Design a 4-node training setup; defend your choice of data vs pipeline vs tensor parallelism.",
+    ]},
+    { kw: ["memory", "zero", "offload", "flashattention"], prompts: [
+      "Estimate optimizer-state memory for a 7B model — when does ZeRO-3 actually pay off?",
+      "Why does FlashAttention beat standard attention without changing the math?",
+      "Trade off: NVMe offloading vs sharding. When is each the right move?",
+    ]},
+    { kw: ["serving", "inference", "batching", "kv cache"], prompts: [
+      "Compare static batching, dynamic batching, and continuous batching — what request distribution favors each?",
+      "How does PagedAttention solve the KV-cache memory fragmentation problem?",
+      "Design a serving system that meets a P99 latency SLA on mixed-length requests.",
+    ]},
+  ]
+  for (const b of banks) {
+    if (b.kw.some((k) => hay.includes(k))) return b.prompts
+  }
+  // Generic Bloom-style fallback.
+  return [
+    `Compare two approaches to ${topic.toLowerCase() || "this week's material"} — when does one outperform the other?`,
+    `Apply this week's concepts to a real-world problem your students would recognize.`,
+    `Critique a common misconception students bring into this topic. How would you correct it?`,
+  ]
+}
 
 interface WeekScheduleProps {
   weeks: CourseWeek[]
@@ -361,7 +418,24 @@ export function WeekSchedule({
                                   className="h-7 text-xs flex-shrink-0"
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    // In production, this would add the reading
+                                    if (!onUpdateWeek) return
+                                    const exists = week.readings.some(
+                                      (r) => r.materialId === suggestion.id
+                                    )
+                                    if (exists) {
+                                      toast.info("Already in this week")
+                                      return
+                                    }
+                                    const reading: WeekReading = {
+                                      materialId: suggestion.id,
+                                      materialName: suggestion.name,
+                                    }
+                                    onUpdateWeek(week.week, {
+                                      readings: [...week.readings, reading],
+                                    })
+                                    toast.success(`Added to Week ${week.week}`, {
+                                      description: suggestion.name,
+                                    })
                                   }}
                                 >
                                   <Plus className="h-3 w-3 mr-1" />
@@ -412,7 +486,27 @@ export function WeekSchedule({
                         <MessageSquare className="h-3 w-3" /> Discussion questions
                       </p>
                       {!isEditing && (
-                        <Button variant="outline" size="sm" className="h-6 text-[10px]">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 text-[10px]"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (!onUpdateWeek) return
+                            const prompts = pickDiscussionPrompts(
+                              week.conceptsIntroduced[0] ?? "",
+                              week.inClassFocus ?? ""
+                            )
+                            const merged = [
+                              ...(week.discussionQuestions ?? []),
+                              ...prompts.filter(
+                                (p) => !(week.discussionQuestions ?? []).includes(p)
+                              ),
+                            ]
+                            onUpdateWeek(week.week, { discussionQuestions: merged })
+                            toast.success(`Added 3 discussion prompts to Week ${week.week}`)
+                          }}
+                        >
                           <Sparkles className="h-2.5 w-2.5 mr-1" />
                           Suggest 3
                         </Button>
@@ -475,13 +569,21 @@ export function WeekSchedule({
                               <Eye className="h-3 w-3 mr-1" />
                               View
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="h-7 text-xs"
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation()
-                                handleViewProblemSet(week.week, week.inClassFocus)
+                                setSelectedProblemSetWeek(week.week)
+                                setProblemSetModalOpen(true)
+                                setIsLoadingProblemSet(true)
+                                await new Promise((r) => setTimeout(r, 1500))
+                                setSelectedProblemSet(sampleProblemSets[week.week] ?? null)
+                                setIsLoadingProblemSet(false)
+                                toast.success(`Regenerated problem set for Week ${week.week}`, {
+                                  description: "Questions re-shuffled based on this week's focus.",
+                                })
                               }}
                             >
                               <RefreshCw className="h-3 w-3 mr-1" />

@@ -11,7 +11,17 @@ import type {
   CourseOutline,
   ProblemSet,
   Question,
+  LearningPath,
 } from "./course-types"
+import {
+  calculusCourseSettings,
+  calculusSampleConcepts,
+  calculusSampleWeeks,
+  calculusSampleMaterials,
+  calculusSampleOutcomeCoverage,
+  calculusSampleLearningPaths,
+  calculusSampleSelectedPathId,
+} from "./optimizer-data"
 
 // Sample ML Systems Course
 export const sampleCourseSettings: CourseSettings = {
@@ -435,6 +445,77 @@ export const sampleOutcomeCoverage: OutcomeCoverage[] = [
 // No gap warnings - course is properly sequenced
 export const sampleGapWarnings: GapWarning[] = []
 
+// 6 candidate learning paths for the ML Systems course. These don't come
+// from the Python optimizer (which only ran on the calculus textbook); they
+// are hand-authored alternative orderings of the 30 sampleConcepts. Each
+// path respects the dependency chains in `sampleConcepts` and offers a
+// distinct pedagogical strategy. The path-picker on /new/plan rearranges
+// the schedule when the user selects a different one.
+function buildMLSystemsPath(
+  id: string,
+  conceptIds: string[],
+  reasoning: string,
+  estimatedHours: string,
+  iteration: number
+): LearningPath {
+  const conceptById = new Map(sampleConcepts.map((c) => [c.id, c]))
+  return {
+    id,
+    kcSequence: conceptIds.map((cid) => {
+      const c = conceptById.get(cid)
+      return { kcId: cid, kcLabel: c?.name ?? cid }
+    }),
+    reasoning,
+    estimatedHours,
+    iteration,
+  }
+}
+
+export const mlSystemsLearningPaths: LearningPath[] = [
+  buildMLSystemsPath(
+    "path_1",
+    ["c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12","c13","c14","c15","c16","c17","c18","c19","c20","c21","c22","c23","c24","c25","c26","c27","c28","c29","c30"],
+    "Strict prerequisite-first ordering: introduces communication primitives (parameter servers, all-reduce) before parallelism strategies, then memory optimization, then serving. Each week's reading depends only on prior weeks. Best when students need a solid mental model before tackling production systems and you have TAs available for office hours.",
+    "42",
+    1
+  ),
+  buildMLSystemsPath(
+    "path_2",
+    ["c1","c2","c4","c5","c6","c3","c10","c11","c7","c8","c9","c12","c13","c14","c15","c19","c20","c21","c16","c17","c18","c22","c23","c24","c25","c26","c27","c28","c29","c30"],
+    "Throughput-first path. Introduces all-reduce and parameter servers earlier so students can build a multi-GPU training system by week 3. Pipeline parallelism appears before sync/async theory, motivating those concepts with a concrete throughput problem. Defers memory optimizations (ZeRO, FlashAttention) until students have a working baseline to optimize. Reduces 'why are we learning this?' fatigue in early weeks.",
+    "40",
+    2
+  ),
+  buildMLSystemsPath(
+    "path_3",
+    ["c1","c15","c2","c16","c17","c18","c3","c5","c4","c6","c7","c8","c9","c10","c11","c12","c13","c14","c19","c20","c21","c22","c23","c24","c25","c26","c27","c28","c29","c30"],
+    "Memory-first ordering for cohorts working with large models from day one (e.g., LLM-focused programs). Surfaces the 'why' of distributed training (memory limits, ZeRO-style partitioning) before introducing parallelism strategies. Best paired with hands-on labs using small open-weight models where memory is the visible bottleneck. Communication primitives follow once students have felt the pain.",
+    "44",
+    3
+  ),
+  buildMLSystemsPath(
+    "path_4",
+    ["c1","c2","c22","c23","c24","c28","c29","c30","c25","c26","c27","c3","c5","c4","c6","c7","c8","c9","c10","c11","c12","c13","c14","c15","c16","c17","c18","c19","c20","c21"],
+    "Industry-track sequence: gets students to a working serving stack (Orca-style continuous batching, vLLM PagedAttention) by week 4 so they can ship a side project. Distributed training fundamentals follow in the second half. Best for cohorts with web/backend backgrounds who want immediate practical wins; risks shallow understanding of training dynamics if assessments don't reinforce them.",
+    "46",
+    4
+  ),
+  buildMLSystemsPath(
+    "path_5",
+    ["c1","c2","c3","c4","c5","c7","c10","c13","c15","c16","c19","c22","c23","c25","c28","c29","c17","c18","c20","c21","c26","c27","c8","c11","c12","c14","c30","c6","c9","c24"],
+    "Project-driven slimmed path. Builds the minimum prerequisite stack each week needs for a final project (training a 1B-parameter model and serving it under a latency SLA). Defers theoretical depth (1F1B scheduling, statistical multiplexing, async SGD) until late in the term. Highest student satisfaction in past offerings; weakest exam performance on edge-case theory.",
+    "38",
+    5
+  ),
+  buildMLSystemsPath(
+    "path_6",
+    ["c1","c2","c5","c4","c6","c7","c8","c3","c9","c10","c11","c12","c13","c14","c15","c16","c17","c18","c19","c20","c21","c22","c23","c24","c25","c26","c27","c28","c29","c30"],
+    "Smoothes week-to-week complexity transitions. Each week ramps gradually rather than jumping between deep theory (1F1B scheduling) and applied systems (model serving). Reduces TA office-hour load by avoiding 'cliff weeks'. Recommended when teaching a heterogeneous cohort where some students have prior systems experience and others don't.",
+    "42",
+    6
+  ),
+]
+
 export const sampleCoursePlan: CoursePlan = {
   id: "plan-1",
   courseId: "ml-systems-2024",
@@ -443,6 +524,9 @@ export const sampleCoursePlan: CoursePlan = {
   outcomeCoverage: sampleOutcomeCoverage,
   gapWarnings: sampleGapWarnings,
   generatedAt: new Date("2024-01-20"),
+  learningPaths: mlSystemsLearningPaths,
+  selectedPathId: "path_1",
+  templateSource: "ml-systems",
 }
 
 export const sampleCourse: SampleCourse = {
@@ -450,6 +534,43 @@ export const sampleCourse: SampleCourse = {
   materials: sampleMaterials,
   plan: sampleCoursePlan,
 }
+
+// Sample Calculus course backed by real Learning-Path-Optimizer outputs.
+// Concepts (KCs), dependencies, and the chosen learning path all come from
+// `lib/data/calculus/*.json` via `lib/optimizer-data.ts`.
+export const sampleCalculusGapWarnings: GapWarning[] = []
+
+export const sampleCalculusCoursePlan: CoursePlan = {
+  id: "plan-calculus-1",
+  courseId: calculusCourseSettings.id,
+  weeks: calculusSampleWeeks,
+  conceptGraph: calculusSampleConcepts,
+  outcomeCoverage: calculusSampleOutcomeCoverage,
+  gapWarnings: sampleCalculusGapWarnings,
+  generatedAt: new Date("2025-01-20"),
+  learningPaths: calculusSampleLearningPaths,
+  selectedPathId: calculusSampleSelectedPathId,
+  templateSource: "calculus",
+}
+
+export const sampleCalculusCourse: SampleCourse = {
+  settings: calculusCourseSettings,
+  materials: calculusSampleMaterials,
+  plan: sampleCalculusCoursePlan,
+}
+
+// Calculus outline (for the /new/outline step view) — derived from the chosen path's weeks.
+export const sampleCalculusOutlineWeeks: OutlineWeek[] = calculusSampleWeeks.map((w) => ({
+  week: w.week,
+  topic:
+    w.conceptsIntroduced[0] ??
+    (w.week === calculusCourseSettings.weeks ? "Final Review" : "Project Work & Consolidation"),
+  description:
+    w.conceptsIntroduced.length > 0
+      ? w.conceptsIntroduced.join(" · ")
+      : w.inClassFocus,
+  pinnedMaterialIds: w.readings.map((r) => r.materialId),
+}))
 
 // Sample outline for ML Systems course
 export const sampleOutlineWeeks: OutlineWeek[] = [

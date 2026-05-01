@@ -129,6 +129,138 @@ export default function OutlinePage() {
     setEditValues({ topic: "", description: "" })
   }, [])
 
+  // ---------- Outline Assistant ----------
+  type RenameSuggestion = { week: number; from: string; to: string }
+  type OutcomeMapping = { outcome: string; weeks: number[] }
+  type OverloadFlag = { week: number; topic: string; reason: string }
+  type MergeSuggestion = { week: number; nextWeek: number; topic: string; nextTopic: string; reason: string }
+  type AssistantResult =
+    | { kind: "rename"; suggestions: RenameSuggestion[] }
+    | { kind: "outcomes"; mappings: OutcomeMapping[]; uncovered: string[] }
+    | { kind: "overload"; flags: OverloadFlag[] }
+    | { kind: "merges"; suggestions: MergeSuggestion[] }
+
+  const [assistantBusy, setAssistantBusy] = useState<string | null>(null)
+  const [assistantResult, setAssistantResult] = useState<AssistantResult | null>(null)
+
+  const dismissAssistant = useCallback(() => setAssistantResult(null), [])
+
+  const runAssistant = useCallback(
+    async (action: AssistantResult["kind"]) => {
+      if (!outline) return
+      setAssistantBusy(action)
+      setAssistantResult(null)
+      // Realistic "thinking" delay
+      await new Promise((r) => setTimeout(r, 900 + Math.random() * 500))
+
+      if (action === "rename") {
+        const suggestions: RenameSuggestion[] = outline.weeks
+          .filter((w) => w.topic && w.description && w.pinnedMaterialIds.length > 0)
+          .slice(0, 5)
+          .map((w) => {
+            const firstPhrase = w.description
+              .split(/[,.;]/)[0]
+              .trim()
+              .replace(/^[A-Z]/, (c) => c.toLowerCase())
+            const enriched = firstPhrase && firstPhrase.length > 8 && firstPhrase.length < 60
+              ? `${w.topic}: ${firstPhrase}`
+              : `${w.topic} & Applications`
+            return { week: w.week, from: w.topic, to: enriched }
+          })
+        setAssistantResult({ kind: "rename", suggestions })
+      } else if (action === "outcomes") {
+        const outcomes = (courseSettings?.learningOutcomes ?? "")
+          .split("\n")
+          .map((s) => s.replace(/^\d+\.\s*/, "").trim())
+          .filter(Boolean)
+        const mappings: OutcomeMapping[] = outcomes.map((outcome) => {
+          const tokens = outcome.toLowerCase().split(/[\s,]+/).filter((t) => t.length > 4)
+          const weeks = outline.weeks
+            .filter((w) => {
+              const hay = `${w.topic} ${w.description}`.toLowerCase()
+              return tokens.some((t) => hay.includes(t))
+            })
+            .map((w) => w.week)
+          return { outcome, weeks }
+        })
+        const uncovered = mappings.filter((m) => m.weeks.length === 0).map((m) => m.outcome)
+        setAssistantResult({ kind: "outcomes", mappings, uncovered })
+      } else if (action === "overload") {
+        const flags: OverloadFlag[] = outline.weeks
+          .map((w) => {
+            const matCount = w.pinnedMaterialIds.length
+            const descLen = w.description.length
+            if (matCount >= 3) {
+              return { week: w.week, topic: w.topic, reason: `${matCount} pinned materials — risk of cognitive overload` }
+            }
+            if (matCount >= 2 && descLen > 80) {
+              return { week: w.week, topic: w.topic, reason: `Dense scope (${matCount} materials + broad description) — consider splitting` }
+            }
+            return null
+          })
+          .filter((f): f is OverloadFlag => f !== null)
+          .slice(0, 4)
+
+        // If nothing flagged, fall back to highlighting the busiest weeks anyway.
+        if (flags.length === 0) {
+          const sorted = [...outline.weeks].sort(
+            (a, b) => b.pinnedMaterialIds.length - a.pinnedMaterialIds.length
+          )
+          if (sorted[0]?.pinnedMaterialIds.length > 0) {
+            flags.push({
+              week: sorted[0].week,
+              topic: sorted[0].topic,
+              reason: `Heaviest week (${sorted[0].pinnedMaterialIds.length} materials) — manageable but watch student feedback`,
+            })
+          }
+        }
+        setAssistantResult({ kind: "overload", flags })
+      } else if (action === "merges") {
+        const suggestions: MergeSuggestion[] = []
+        for (let i = 0; i < outline.weeks.length - 1; i++) {
+          const a = outline.weeks[i]
+          const b = outline.weeks[i + 1]
+          const lightA = a.pinnedMaterialIds.length === 0
+          const lightB = b.pinnedMaterialIds.length === 0
+          if (lightA && lightB) {
+            suggestions.push({
+              week: a.week,
+              nextWeek: b.week,
+              topic: a.topic,
+              nextTopic: b.topic,
+              reason: "Both weeks have no pinned readings — merging frees up a teaching slot",
+            })
+          } else if ((lightA || lightB) && (a.topic.toLowerCase().includes("project") || b.topic.toLowerCase().includes("project"))) {
+            suggestions.push({
+              week: a.week,
+              nextWeek: b.week,
+              topic: a.topic,
+              nextTopic: b.topic,
+              reason: "Project work + light week — consolidate into a single project sprint",
+            })
+          }
+        }
+        setAssistantResult({ kind: "merges", suggestions: suggestions.slice(0, 3) })
+      }
+      setAssistantBusy(null)
+    },
+    [outline, courseSettings]
+  )
+
+  // Apply rename suggestions to the outline.
+  const applyRenames = useCallback(
+    (suggestions: RenameSuggestion[]) => {
+      if (!outline) return
+      const map = new Map(suggestions.map((s) => [s.week, s.to]))
+      const newWeeks = outline.weeks.map((w) =>
+        map.has(w.week) ? { ...w, topic: map.get(w.week)! } : w
+      )
+      setOutline({ ...outline, weeks: newWeeks })
+      setAssistantResult(null)
+    },
+    [outline]
+  )
+
   const handleSplitWeek = useCallback((weekNum: number) => {
     if (!outline) return
     
@@ -589,23 +721,207 @@ export default function OutlinePage() {
                   </p>
 
                   <div className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full justify-start text-xs h-8">
-                      <RefreshCw className="h-3 w-3 mr-2" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => runAssistant("rename")}
+                      disabled={!!assistantBusy}
+                    >
+                      {assistantBusy === "rename" ? (
+                        <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3 w-3 mr-2" />
+                      )}
                       Suggest better topic names
                     </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start text-xs h-8">
-                      <Target className="h-3 w-3 mr-2" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => runAssistant("outcomes")}
+                      disabled={!!assistantBusy}
+                    >
+                      {assistantBusy === "outcomes" ? (
+                        <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                      ) : (
+                        <Target className="h-3 w-3 mr-2" />
+                      )}
                       Map outcomes to weeks
                     </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start text-xs h-8">
-                      <Split className="h-3 w-3 mr-2" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => runAssistant("overload")}
+                      disabled={!!assistantBusy}
+                    >
+                      {assistantBusy === "overload" ? (
+                        <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                      ) : (
+                        <Split className="h-3 w-3 mr-2" />
+                      )}
                       Identify overloaded weeks
                     </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start text-xs h-8">
-                      <Merge className="h-3 w-3 mr-2" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => runAssistant("merges")}
+                      disabled={!!assistantBusy}
+                    >
+                      {assistantBusy === "merges" ? (
+                        <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                      ) : (
+                        <Merge className="h-3 w-3 mr-2" />
+                      )}
                       Suggest merges
                     </Button>
                   </div>
+
+                  {/* Assistant result panel */}
+                  {(assistantBusy || assistantResult) && (
+                    <div className="mt-4 pt-4 border-t border-border">
+                      {assistantBusy && !assistantResult ? (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <span>Analyzing outline…</span>
+                        </div>
+                      ) : assistantResult ? (
+                        <div className="rounded-md bg-accent/5 border border-accent/20 p-3 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-xs font-medium text-foreground">
+                              {assistantResult.kind === "rename" && "Suggested topic names"}
+                              {assistantResult.kind === "outcomes" && "Outcome → week mapping"}
+                              {assistantResult.kind === "overload" && "Potentially overloaded weeks"}
+                              {assistantResult.kind === "merges" && "Merge candidates"}
+                            </p>
+                            <button
+                              onClick={dismissAssistant}
+                              className="text-muted-foreground hover:text-foreground"
+                              aria-label="Dismiss"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+
+                          {assistantResult.kind === "rename" && (
+                            <div className="space-y-2">
+                              {assistantResult.suggestions.length === 0 ? (
+                                <p className="text-[11px] text-muted-foreground">
+                                  Topic names already look concise — nothing to rename.
+                                </p>
+                              ) : (
+                                <>
+                                  <ul className="space-y-1.5">
+                                    {assistantResult.suggestions.map((s) => (
+                                      <li key={s.week} className="text-[11px] leading-snug">
+                                        <span className="text-muted-foreground">W{s.week}:</span>{" "}
+                                        <span className="line-through text-muted-foreground/70">{s.from}</span>
+                                        <br />
+                                        <span className="text-accent">↳ {s.to}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                  <Button
+                                    size="sm"
+                                    className="w-full h-7 text-[11px]"
+                                    onClick={() => applyRenames(assistantResult.suggestions)}
+                                  >
+                                    <Check className="h-3 w-3 mr-1.5" />
+                                    Apply all
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          )}
+
+                          {assistantResult.kind === "outcomes" && (
+                            <div className="space-y-2">
+                              <ul className="space-y-1.5">
+                                {assistantResult.mappings.map((m, i) => (
+                                  <li key={i} className="text-[11px] leading-snug">
+                                    <span className="text-foreground line-clamp-2">{m.outcome}</span>
+                                    <span className="text-muted-foreground">
+                                      {m.weeks.length > 0
+                                        ? ` → Weeks ${m.weeks.join(", ")}`
+                                        : " → Not yet covered"}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                              {assistantResult.uncovered.length > 0 && (
+                                <div className="flex items-start gap-1.5 mt-2 pt-2 border-t border-accent/20">
+                                  <AlertCircle className="h-3 w-3 text-amber-600 mt-0.5 shrink-0" />
+                                  <p className="text-[11px] text-muted-foreground">
+                                    {assistantResult.uncovered.length} outcome
+                                    {assistantResult.uncovered.length === 1 ? "" : "s"} not yet
+                                    covered by any week's topic
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {assistantResult.kind === "overload" && (
+                            <div className="space-y-1.5">
+                              {assistantResult.flags.length === 0 ? (
+                                <div className="flex items-start gap-1.5">
+                                  <CheckCircle2 className="h-3 w-3 text-emerald-600 mt-0.5 shrink-0" />
+                                  <p className="text-[11px] text-muted-foreground">
+                                    Workload looks balanced. No weeks flagged.
+                                  </p>
+                                </div>
+                              ) : (
+                                assistantResult.flags.map((f, i) => (
+                                  <div key={i} className="text-[11px] leading-snug">
+                                    <p className="font-medium text-foreground">
+                                      W{f.week}: {f.topic}
+                                    </p>
+                                    <p className="text-muted-foreground">{f.reason}</p>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
+
+                          {assistantResult.kind === "merges" && (
+                            <div className="space-y-2">
+                              {assistantResult.suggestions.length === 0 ? (
+                                <p className="text-[11px] text-muted-foreground">
+                                  No obvious merge candidates — adjacent weeks have distinct content.
+                                </p>
+                              ) : (
+                                assistantResult.suggestions.map((s, i) => (
+                                  <div
+                                    key={i}
+                                    className="text-[11px] leading-snug pb-2 border-b border-accent/10 last:border-b-0 last:pb-0"
+                                  >
+                                    <p className="font-medium text-foreground">
+                                      W{s.week} ({s.topic}) + W{s.nextWeek} ({s.nextTopic})
+                                    </p>
+                                    <p className="text-muted-foreground mb-1.5">{s.reason}</p>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-6 text-[10px] px-2"
+                                      onClick={() => {
+                                        handleMergeWithNext(s.week)
+                                        setAssistantResult(null)
+                                      }}
+                                    >
+                                      <Merge className="h-2.5 w-2.5 mr-1" />
+                                      Apply merge
+                                    </Button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
 
                   {/* Quick Stats */}
                   <div className="mt-6 pt-4 border-t border-border">

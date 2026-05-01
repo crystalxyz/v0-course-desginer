@@ -9,7 +9,6 @@ import {
   Download,
   Share2,
   RefreshCw,
-  Loader2,
   Calendar,
   Target,
   Check,
@@ -22,21 +21,30 @@ import { WeekSchedule } from "@/components/course/week-schedule"
 import { OutcomesTracker } from "@/components/course/outcomes-tracker"
 import { MaterialsPanel } from "@/components/course/materials-panel"
 import { ConceptDetail } from "@/components/course/concept-detail"
+import { OptimizerProgress, buildOptimizerStages } from "@/components/course/optimizer-progress"
+import { ConceptGraph } from "@/components/course/concept-graph"
+import { PathPicker } from "@/components/course/path-picker"
+import { Network, Route } from "lucide-react"
+import { toast } from "sonner"
 
-import { 
-  sampleCoursePlan, 
-  sampleConcepts, 
-  sampleWeeks, 
-  sampleOutcomeCoverage, 
+import {
+  sampleCoursePlan,
+  sampleConcepts,
+  sampleWeeks,
+  sampleOutcomeCoverage,
   sampleMaterials,
+  sampleCalculusCoursePlan,
+  sampleCalculusCourse,
 } from "@/lib/mock-course-data"
-import type { 
-  CourseSettings, 
-  CourseMaterial, 
-  CoursePlan, 
-  CourseWeek, 
+import { calculusOptimizerStats, applyPathToConcepts } from "@/lib/optimizer-data"
+import type {
+  CourseSettings,
+  CourseMaterial,
+  CoursePlan,
+  CourseWeek,
   Concept,
   HoverState,
+  LearningPath,
 } from "@/lib/course-types"
 
 export default function CoursePlanPage() {
@@ -53,8 +61,13 @@ export default function CoursePlanPage() {
   const [selectedConcept, setSelectedConcept] = useState<Concept | null>(null)
   const [selectedWeek, setSelectedWeek] = useState<number | undefined>(undefined)
 
+  // Detect which sample plan to base this off of from the course settings.
+  const courseTemplate: "calculus" | "ml-systems" =
+    (courseSettings?.title ?? "").toLowerCase().includes("calculus")
+      ? "calculus"
+      : "ml-systems"
+
   useEffect(() => {
-    // Load settings and materials from localStorage
     const storedSettings = localStorage.getItem("currentCourseSettings")
     const storedMaterials = localStorage.getItem("currentCourseMaterials")
 
@@ -66,25 +79,23 @@ export default function CoursePlanPage() {
     } else {
       setMaterials(sampleMaterials)
     }
-
-    // Simulate plan generation
-    const generatePlan = async () => {
-      setIsGenerating(true)
-      await new Promise((resolve) => setTimeout(resolve, 2500))
-
-      // Use sample data for now
-      const generatedPlan: CoursePlan = {
-        ...sampleCoursePlan,
-        id: `plan-${Date.now()}`,
-        generatedAt: new Date(),
-      }
-
-      setPlan(generatedPlan)
-      setIsGenerating(false)
-    }
-
-    generatePlan()
   }, [])
+
+  // Run after the course template has been determined.
+  const finishGeneration = useCallback(() => {
+    const basePlan =
+      courseTemplate === "calculus" ? sampleCalculusCoursePlan : sampleCoursePlan
+    const generatedPlan: CoursePlan = {
+      ...basePlan,
+      id: `plan-${Date.now()}`,
+      generatedAt: new Date(),
+    }
+    setPlan(generatedPlan)
+    setIsGenerating(false)
+  }, [courseTemplate])
+
+  const conceptsWithWeeks: Concept[] = plan?.conceptGraph || sampleConcepts
+  const currentMaterials = materials.length > 0 ? materials : sampleMaterials
 
   const handleUpdateWeek = useCallback((weekNumber: number, updates: Partial<CourseWeek>) => {
     if (!plan) return
@@ -99,7 +110,59 @@ export default function CoursePlanPage() {
   const handleConceptClick = useCallback((concept: Concept) => {
     setSelectedConcept(concept)
     setRightPanelTab("concept")
+    setActiveTab("schedule")
   }, [])
+
+  const handlePathSelect = useCallback(
+    (pathId: string) => {
+      if (!plan) return
+      if (plan.selectedPathId === pathId) return
+      const path = plan.learningPaths?.find((p) => p.id === pathId)
+      if (!path) return
+
+      const weeksCount = courseSettings?.weeks ?? plan.weeks.length
+      const hoursPerWeek = courseSettings?.hoursPerWeek ?? 4
+
+      const { weeks: newWeeks, weekAssignment } = applyPathToConcepts(
+        path,
+        plan.conceptGraph,
+        currentMaterials,
+        { weeks: weeksCount, hoursPerWeek }
+      )
+
+      // Compute how many weeks actually changed for the toast.
+      const changed = newWeeks.reduce((acc, w, i) => {
+        const prev = plan.weeks[i]
+        const sameConcepts =
+          prev &&
+          prev.conceptsIntroduced.length === w.conceptsIntroduced.length &&
+          prev.conceptsIntroduced.every((c, j) => c === w.conceptsIntroduced[j])
+        return acc + (sameConcepts ? 0 : 1)
+      }, 0)
+
+      const updatedConcepts: Concept[] = plan.conceptGraph.map((c) => ({
+        ...c,
+        weekIntroduced: weekAssignment[c.id] ?? c.weekIntroduced,
+      }))
+
+      setPlan({
+        ...plan,
+        weeks: newWeeks.length > 0 ? newWeeks : plan.weeks,
+        conceptGraph: updatedConcepts,
+        selectedPathId: pathId,
+      })
+
+      const pathNumber =
+        (plan.learningPaths?.findIndex((p) => p.id === pathId) ?? 0) + 1
+      toast.success(`Switched to Path ${pathNumber}`, {
+        description:
+          changed > 0
+            ? `Re-arranged ${changed} ${changed === 1 ? "week" : "weeks"} · ~${path.estimatedHours} hrs total`
+            : `~${path.estimatedHours} hrs total`,
+      })
+    },
+    [plan, courseSettings, currentMaterials]
+  )
 
   const handleCloseConceptDetail = useCallback(() => {
     setSelectedConcept(null)
@@ -118,13 +181,34 @@ export default function CoursePlanPage() {
     setSelectedWeek(week)
   }, [])
 
-  const conceptsWithWeeks: Concept[] = plan?.conceptGraph || sampleConcepts
-  const currentMaterials = materials.length > 0 ? materials : sampleMaterials
-
   if (isGenerating) {
+    const stats =
+      courseTemplate === "calculus"
+        ? calculusOptimizerStats
+        : {
+            knowledgeComponents: Math.max(materials.length * 4, 18),
+            dependencyChains: Math.max(Math.ceil(materials.length * 0.6), 5),
+            candidatePaths: 6,
+          }
+    const selectedHours =
+      courseTemplate === "calculus"
+        ? sampleCalculusCourse.plan.learningPaths?.find(
+            (p) => p.id === sampleCalculusCourse.plan.selectedPathId
+          )?.estimatedHours ?? "45"
+        : `${(courseSettings?.weeks ?? 14) * (courseSettings?.hoursPerWeek ?? 3)}`
+
+    const stages = buildOptimizerStages({
+      template: courseTemplate,
+      materialsCount: materials.length || (courseTemplate === "calculus" ? 8 : 16),
+      kcCount: stats.knowledgeComponents,
+      dependencyChainCount: stats.dependencyChains,
+      candidatePathCount: stats.candidatePaths,
+      selectedPathHours: selectedHours,
+      weeks: courseSettings?.weeks ?? 14,
+    })
+
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        {/* Header */}
         <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -136,31 +220,16 @@ export default function CoursePlanPage() {
           </div>
         </header>
 
-        {/* Loading State */}
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-accent/10 mb-6">
-              <Loader2 className="h-8 w-8 text-accent animate-spin" />
-            </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">Generating your course plan</h2>
-            <p className="text-muted-foreground max-w-md">
-              Analyzing materials, building concept graph, optimizing schedule, and generating artifacts...
-            </p>
-            <div className="flex items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-accent" />
-                <span>Extracting concepts</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Building dependencies</span>
-              </div>
-              <div className="flex items-center gap-2 opacity-50">
-                <div className="h-4 w-4 rounded-full border-2 border-muted-foreground" />
-                <span>Generating schedule</span>
-              </div>
-            </div>
-          </div>
+        <main className="flex-1 flex items-center justify-center py-10">
+          <OptimizerProgress
+            stages={stages}
+            onComplete={finishGeneration}
+            subtitle={
+              courseTemplate === "calculus"
+                ? "Running the learning-path-optimizer pipeline on your calculus materials."
+                : "Analyzing materials, identifying knowledge components, and ranking candidate paths."
+            }
+          />
         </main>
       </div>
     )
@@ -190,7 +259,17 @@ export default function CoursePlanPage() {
                 Export
               </Link>
             </Button>
-            <Button size="sm">
+            <Button
+              size="sm"
+              onClick={() => {
+                const slug = Math.random().toString(36).slice(2, 10)
+                const link = `https://coursedesigner.app/share/${slug}`
+                navigator.clipboard.writeText(link).catch(() => {})
+                toast.success("Share link copied", {
+                  description: "Anyone with the link can view this course (read-only).",
+                })
+              }}
+            >
               <Share2 className="mr-2 h-4 w-4" />
               Share
             </Button>
@@ -267,101 +346,154 @@ export default function CoursePlanPage() {
         </div>
       </div>
 
-      {/* 3-Panel Layout */}
+      {/* Main Content */}
       <main className="flex-1 container mx-auto px-4 py-6">
-        {/* Mobile: Tabs */}
-        <div className="lg:hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="schedule" className="text-xs">
-                <Calendar className="h-3 w-3 mr-1" />
-                Schedule
-              </TabsTrigger>
-              <TabsTrigger value="outcomes" className="text-xs">
-                <Target className="h-3 w-3 mr-1" />
-                Outcomes
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="schedule" className="h-[600px]">
-              <WeekSchedule
-                weeks={plan?.weeks || sampleWeeks}
-                onUpdateWeek={handleUpdateWeek}
-                hoverState={hoverState}
-                onHoverChange={handleHoverChange}
-                selectedWeek={selectedWeek}
-                onWeekSelect={handleWeekSelect}
-              />
-            </TabsContent>
-            <TabsContent value="outcomes" className="h-[600px]">
-              <OutcomesTracker outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage} />
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Desktop: 2-Panel */}
-        <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-[calc(100vh-280px)]">
-          {/* Left: Week Schedule */}
-          <div className="col-span-8">
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-sm font-medium text-foreground">Weekly Schedule</h2>
-            </div>
-            <div className="h-[calc(100%-32px)]">
-              <WeekSchedule
-                weeks={plan?.weeks || sampleWeeks}
-                onUpdateWeek={handleUpdateWeek}
-                hoverState={hoverState}
-                onHoverChange={handleHoverChange}
-                selectedWeek={selectedWeek}
-                onWeekSelect={handleWeekSelect}
-              />
-            </div>
-          </div>
-
-          {/* Right: Outcomes/Materials/Concept Detail */}
-          <div className="col-span-4">
-            {/* Tab Switcher */}
-            <div className="flex items-center gap-2 mb-3">
-              <Tabs value={rightPanelTab} onValueChange={(v) => setRightPanelTab(v as typeof rightPanelTab)} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="outcomes" className="text-xs">
-                    <Target className="h-3 w-3 mr-1" />
-                    Outcomes
-                  </TabsTrigger>
-                  <TabsTrigger value="materials" className="text-xs">
-                    <BookOpen className="h-3 w-3 mr-1" />
-                    Materials
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            
-            <div className="h-[calc(100%-40px)]">
-              {rightPanelTab === "outcomes" && (
-                <OutcomesTracker outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage} />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="schedule" className="text-xs">
+              <Calendar className="h-3.5 w-3.5 mr-1.5" />
+              Schedule
+            </TabsTrigger>
+            <TabsTrigger value="graph" className="text-xs">
+              <Network className="h-3.5 w-3.5 mr-1.5" />
+              Concept Graph
+            </TabsTrigger>
+            <TabsTrigger value="paths" className="text-xs">
+              <Route className="h-3.5 w-3.5 mr-1.5" />
+              Learning Paths
+              {plan?.learningPaths && (
+                <Badge variant="secondary" className="ml-2 h-4 text-[10px] px-1.5">
+                  {plan.learningPaths.length}
+                </Badge>
               )}
-              {rightPanelTab === "materials" && (
-                <MaterialsPanel 
-                  materials={currentMaterials}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Schedule tab — original 2-panel layout */}
+          <TabsContent value="schedule" className="mt-0 lg:h-[calc(100vh-300px)]">
+            {/* Mobile: stack */}
+            <div className="lg:hidden space-y-4">
+              <div className="h-[600px]">
+                <WeekSchedule
                   weeks={plan?.weeks || sampleWeeks}
+                  onUpdateWeek={handleUpdateWeek}
                   hoverState={hoverState}
                   onHoverChange={handleHoverChange}
+                  selectedWeek={selectedWeek}
+                  onWeekSelect={handleWeekSelect}
                 />
-              )}
-              {rightPanelTab === "concept" && selectedConcept && (
-                <ConceptDetail
-                  concept={selectedConcept}
-                  weeks={plan?.weeks || sampleWeeks}
-                  outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage}
-                  materials={currentMaterials}
-                  allConcepts={conceptsWithWeeks}
-                  onClose={handleCloseConceptDetail}
-                  onWeekClick={handleScrollToWeek}
-                />
-              )}
+              </div>
+              <div className="h-[400px]">
+                <OutcomesTracker outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage} />
+              </div>
             </div>
-          </div>
-        </div>
+
+            {/* Desktop: 2-panel */}
+            <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-full">
+              <div className="col-span-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <h2 className="text-sm font-medium text-foreground">Weekly Schedule</h2>
+                </div>
+                <div className="h-[calc(100%-32px)]">
+                  <WeekSchedule
+                    weeks={plan?.weeks || sampleWeeks}
+                    onUpdateWeek={handleUpdateWeek}
+                    hoverState={hoverState}
+                    onHoverChange={handleHoverChange}
+                    selectedWeek={selectedWeek}
+                    onWeekSelect={handleWeekSelect}
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Tabs
+                    value={rightPanelTab}
+                    onValueChange={(v) => setRightPanelTab(v as typeof rightPanelTab)}
+                    className="w-full"
+                  >
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="outcomes" className="text-xs">
+                        <Target className="h-3 w-3 mr-1" />
+                        Outcomes
+                      </TabsTrigger>
+                      <TabsTrigger value="materials" className="text-xs">
+                        <BookOpen className="h-3 w-3 mr-1" />
+                        Materials
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+
+                <div className="h-[calc(100%-40px)]">
+                  {rightPanelTab === "outcomes" && (
+                    <OutcomesTracker outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage} />
+                  )}
+                  {rightPanelTab === "materials" && (
+                    <MaterialsPanel
+                      materials={currentMaterials}
+                      weeks={plan?.weeks || sampleWeeks}
+                      outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage}
+                      hoverState={hoverState}
+                      onHoverChange={handleHoverChange}
+                      onMaterialDrop={(id) => {
+                        setMaterials((prev) => prev.filter((m) => m.id !== id))
+                      }}
+                      onMaterialAdd={(s) => {
+                        const newMaterial: CourseMaterial = {
+                          id: `mat-added-${Date.now()}`,
+                          name: s.title,
+                          size: `${(1.2 + Math.random() * 1.5).toFixed(1)} MB`,
+                          status: "complete",
+                          tag: "supplementary",
+                          extractedConcepts: [],
+                        }
+                        setMaterials((prev) => [...prev, newMaterial])
+                      }}
+                    />
+                  )}
+                  {rightPanelTab === "concept" && selectedConcept && (
+                    <ConceptDetail
+                      concept={selectedConcept}
+                      weeks={plan?.weeks || sampleWeeks}
+                      outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage}
+                      materials={currentMaterials}
+                      allConcepts={conceptsWithWeeks}
+                      onClose={handleCloseConceptDetail}
+                      onWeekClick={handleScrollToWeek}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Concept Graph tab */}
+          <TabsContent value="graph" className="mt-0 h-[calc(100vh-300px)] min-h-[500px]">
+            <ConceptGraph
+              concepts={conceptsWithWeeks}
+              selectedConceptId={selectedConcept?.id}
+              onConceptClick={handleConceptClick}
+            />
+          </TabsContent>
+
+          {/* Learning Paths tab */}
+          <TabsContent value="paths" className="mt-0">
+            {plan?.learningPaths && plan.learningPaths.length > 0 ? (
+              <PathPicker
+                paths={plan.learningPaths}
+                selectedPathId={plan.selectedPathId ?? plan.learningPaths[0].id}
+                onSelect={handlePathSelect}
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground text-sm">
+                No alternative paths available for this course yet.
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
     </div>

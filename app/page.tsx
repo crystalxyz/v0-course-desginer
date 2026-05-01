@@ -24,8 +24,8 @@ export default function HomePage() {
             <Link href="/new" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               New Course
             </Link>
-            <Link href="/docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Docs
+            <Link href="/sample" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Examples
             </Link>
           </nav>
           <div className="flex items-center gap-3">
@@ -255,67 +255,19 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-border py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-12">
-            {/* Product */}
-            <div>
-              <h3 className="text-xs uppercase tracking-widest text-muted-foreground mb-4">Product</h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link href="/new" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
-                    New Course
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/sample" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
-                    Sample Course
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/docs" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
-                    Docs
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            
-            {/* Company */}
-            <div>
-              <h3 className="text-xs uppercase tracking-widest text-muted-foreground mb-4">Company</h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link href="/about" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/changelog" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
-                    Changelog
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            
-            {/* Legal */}
-            <div>
-              <h3 className="text-xs uppercase tracking-widest text-muted-foreground mb-4">Legal</h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link href="/privacy" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
-                    Privacy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
-                    Terms
-                  </Link>
-                </li>
-              </ul>
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mb-12">
+            <Link href="/new" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
+              New Course
+            </Link>
+            <Link href="/courses" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
+              My Courses
+            </Link>
+            <Link href="/sample?course=calculus" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
+              Calculus example
+            </Link>
+            <Link href="/sample?course=ml-systems" className="text-sm text-foreground hover:text-muted-foreground transition-colors">
+              ML Systems example
+            </Link>
           </div>
           
           <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
