@@ -1,10 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Check, Clock, ListOrdered, ChevronDown, ChevronUp } from "lucide-react"
+import {
+  Check,
+  Clock,
+  ListOrdered,
+  ChevronDown,
+  ChevronUp,
+  Star,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { LearningPath } from "@/lib/course-types"
 
@@ -17,6 +24,14 @@ interface PathPickerProps {
 export function PathPicker({ paths, selectedPathId, onSelect }: PathPickerProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
+  // Pin the recommended (currently-selected) path to the top of the grid;
+  // remaining paths keep their optimizer-emitted order.
+  const orderedPaths = useMemo(() => {
+    const selected = paths.find((p) => p.id === selectedPathId)
+    if (!selected) return paths
+    return [selected, ...paths.filter((p) => p.id !== selectedPathId)]
+  }, [paths, selectedPathId])
+
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
@@ -26,8 +41,9 @@ export function PathPicker({ paths, selectedPathId, onSelect }: PathPickerProps)
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             The optimizer generated {paths.length} valid orderings of the knowledge
-            components, each respecting prerequisite chains. Pick the one that fits
-            your cohort and the schedule rearranges automatically.
+            components, each respecting prerequisite chains. The first card is
+            pre-selected as best-fit for your cohort's time budget — pick another
+            and the schedule rearranges automatically.
           </p>
         </div>
         <Badge variant="secondary" className="hidden md:inline-flex shrink-0 mt-1">
@@ -36,10 +52,14 @@ export function PathPicker({ paths, selectedPathId, onSelect }: PathPickerProps)
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        {paths.map((path, i) => {
+        {orderedPaths.map((path, i) => {
           const isSelected = path.id === selectedPathId
+          const isRecommended = isSelected && i === 0
           const isExpanded = expandedId === path.id
-          const pathNumber = i + 1
+          // Show the original path number, not the display order, so users can
+          // cross-reference path_3 in the reasoning text with the badge.
+          const originalIdx = paths.findIndex((p) => p.id === path.id)
+          const pathNumber = originalIdx + 1
           const reasoningSentences = splitSentences(path.reasoning)
           const teaser = reasoningSentences.slice(0, 2).join(" ")
           const rest = reasoningSentences.slice(2).join(" ")
@@ -77,6 +97,12 @@ export function PathPicker({ paths, selectedPathId, onSelect }: PathPickerProps)
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    {isRecommended && (
+                      <Badge className="text-[10px] gap-1 px-1.5 bg-amber-500/15 text-amber-700 border-amber-200 hover:bg-amber-500/15">
+                        <Star className="h-3 w-3 fill-current" />
+                        Recommended
+                      </Badge>
+                    )}
                     <Badge variant="outline" className="text-[10px] gap-1 px-1.5">
                       <Clock className="h-3 w-3" />~{path.estimatedHours} hrs
                     </Badge>

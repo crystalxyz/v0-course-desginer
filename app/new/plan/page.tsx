@@ -471,12 +471,26 @@ export default function CoursePlanPage() {
           </TabsContent>
 
           {/* Concept Graph tab */}
-          <TabsContent value="graph" className="mt-0 h-[calc(100vh-300px)] min-h-[500px]">
-            <ConceptGraph
-              concepts={conceptsWithWeeks}
-              selectedConceptId={selectedConcept?.id}
-              onConceptClick={handleConceptClick}
-            />
+          <TabsContent value="graph" className="mt-0">
+            <div className="mb-3 flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Concept dependency graph</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Hover any node to trace its prerequisite chain. Click to open the concept detail panel. Color = complexity.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums">
+                <span><span className="font-medium text-foreground">{conceptsWithWeeks.length}</span> nodes</span>
+                <span><span className="font-medium text-foreground">{conceptsWithWeeks.reduce((acc, c) => acc + c.dependencies.length, 0)}</span> edges</span>
+              </div>
+            </div>
+            <div className="h-[calc(100vh-340px)] min-h-[500px]">
+              <ConceptGraph
+                concepts={conceptsWithWeeks}
+                selectedConceptId={selectedConcept?.id}
+                onConceptClick={handleConceptClick}
+              />
+            </div>
           </TabsContent>
 
           {/* Learning Paths tab */}

@@ -30,6 +30,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { sampleConcepts, sampleWeeks, proposeRepacing, sampleCoursePlan } from "@/lib/mock-course-data"
 import type { ScheduleChange } from "@/lib/mock-course-data"
@@ -127,7 +128,15 @@ export default function RepacePage() {
 
   const handleApplyChanges = () => {
     const acceptedCount = proposedChanges.filter(c => c.accepted).length
-    // In production, this would update the actual plan
+    toast.success(
+      `Applied ${acceptedCount} ${acceptedCount === 1 ? "change" : "changes"} to the schedule`,
+      {
+        description:
+          acceptedCount > 0
+            ? "Your plan has been re-paced based on cohort signals."
+            : "No changes selected — plan unchanged.",
+      }
+    )
     router.push("/new/plan")
   }
 

@@ -106,6 +106,9 @@ export function OptimizerProgress({
           )
         })}
       </ol>
+      <p className="mt-8 text-[10px] uppercase tracking-widest text-muted-foreground/60">
+        Pipeline: learning-path-optimizer · serving cached results
+      </p>
     </div>
   )
 }
