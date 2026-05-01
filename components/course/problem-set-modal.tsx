@@ -296,10 +296,10 @@ export function ProblemSetModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <div className="flex items-start justify-between">
-            <div>
+      <DialogContent className="max-w-3xl h-[85vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0 pb-4 border-b border-border">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
               <DialogTitle className="text-lg font-semibold">
                 Week {weekNumber}: {topic}
               </DialogTitle>
@@ -309,7 +309,7 @@ export function ProblemSetModal({
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Button
                 variant="outline"
                 size="sm"
@@ -343,7 +343,8 @@ export function ProblemSetModal({
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 -mx-6 px-6">
+        <div className="flex-1 min-h-0 overflow-hidden -mx-6">
+          <ScrollArea className="h-full px-6">
           {isLoading ? (
             <LoadingSkeleton />
           ) : problemSet ? (
@@ -369,7 +370,8 @@ export function ProblemSetModal({
               No problem set generated yet
             </div>
           )}
-        </ScrollArea>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   )
