@@ -94,6 +94,9 @@ interface WeekScheduleProps {
   onHoverChange?: (state: HoverState) => void
   selectedWeek?: number
   onWeekSelect?: (week: number) => void
+  // Week numbers that just changed (e.g. after switching learning paths).
+  // Rendered with a brief highlight ring + "Updated" pill.
+  recentlyChangedWeeks?: Set<number>
 }
 
 // Load indicator dots (1-5)
@@ -114,8 +117,8 @@ function LoadIndicator({ hours }: { hours: number }) {
   )
 }
 
-export function WeekSchedule({ 
-  weeks, 
+export function WeekSchedule({
+  weeks,
   onUpdateWeek,
   onWeekReorder,
   onReadingMove,
@@ -123,6 +126,7 @@ export function WeekSchedule({
   onHoverChange,
   selectedWeek,
   onWeekSelect,
+  recentlyChangedWeeks,
 }: WeekScheduleProps) {
   const [expandedWeek, setExpandedWeek] = useState<number | null>(1)
   const [editingWeek, setEditingWeek] = useState<number | null>(null)
@@ -264,6 +268,7 @@ export function WeekSchedule({
           const isHighlighted = isWeekHighlighted(week.week)
           const isSelected = selectedWeek === week.week
           const isDragOver = dragOverWeek === week.week
+          const isRecentlyChanged = recentlyChangedWeeks?.has(week.week) ?? false
           const problemSetStats = getProblemSetStats(week.week)
 
           return (
@@ -274,7 +279,8 @@ export function WeekSchedule({
                 isExpanded && "ring-1 ring-accent",
                 isHighlighted && "ring-2 ring-primary/50 bg-primary/5",
                 isSelected && "ring-2 ring-primary",
-                isDragOver && "ring-2 ring-primary bg-primary/10"
+                isDragOver && "ring-2 ring-primary bg-primary/10",
+                isRecentlyChanged && "ring-2 ring-amber-400 shadow-[0_0_0_4px_rgb(251_191_36/0.1)] animate-pulse"
               )}
               onMouseEnter={() => handleMouseEnter(week.week)}
               onMouseLeave={handleMouseLeave}
@@ -299,11 +305,17 @@ export function WeekSchedule({
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {isRecentlyChanged && (
+                      <Badge className="text-[10px] bg-amber-500/15 text-amber-700 border-amber-200 hover:bg-amber-500/15 gap-1">
+                        <RefreshCw className="h-2.5 w-2.5" />
+                        Updated
+                      </Badge>
+                    )}
                     {/* Load indicator */}
                     {week.estimatedHours && (
                       <LoadIndicator hours={week.estimatedHours} />
                     )}
-                    
+
                     {/* Reading count */}
                     {week.readings.length > 0 && (
                       <Badge variant="secondary" className="text-[10px]">

@@ -113,6 +113,12 @@ export default function CoursePlanPage() {
     setActiveTab("schedule")
   }, [])
 
+  // Set of week numbers that just changed after a path switch — used to
+  // briefly highlight those week cards on the Schedule tab.
+  const [recentlyChangedWeeks, setRecentlyChangedWeeks] = useState<Set<number>>(
+    new Set()
+  )
+
   const handlePathSelect = useCallback(
     (pathId: string) => {
       if (!plan) return
@@ -130,15 +136,23 @@ export default function CoursePlanPage() {
         { weeks: weeksCount, hoursPerWeek }
       )
 
-      // Compute how many weeks actually changed for the toast.
-      const changed = newWeeks.reduce((acc, w, i) => {
+      // Compute the set of weeks that actually changed (any difference in
+      // conceptsIntroduced or readings).
+      const changedSet = new Set<number>()
+      newWeeks.forEach((w, i) => {
         const prev = plan.weeks[i]
         const sameConcepts =
           prev &&
           prev.conceptsIntroduced.length === w.conceptsIntroduced.length &&
           prev.conceptsIntroduced.every((c, j) => c === w.conceptsIntroduced[j])
-        return acc + (sameConcepts ? 0 : 1)
-      }, 0)
+        const sameReadings =
+          prev &&
+          prev.readings.length === w.readings.length &&
+          prev.readings.every((r, j) => r.materialId === w.readings[j].materialId)
+        if (!sameConcepts || !sameReadings) {
+          changedSet.add(w.week)
+        }
+      })
 
       const updatedConcepts: Concept[] = plan.conceptGraph.map((c) => ({
         ...c,
@@ -152,12 +166,24 @@ export default function CoursePlanPage() {
         selectedPathId: pathId,
       })
 
+      // Light up the changed weeks; clear after ~5s.
+      setRecentlyChangedWeeks(changedSet)
+      // Auto-scroll the Schedule tab to the first changed week so the user
+      // visually sees what's different.
+      setActiveTab("schedule")
+      const firstChanged = Math.min(...Array.from(changedSet))
+      if (Number.isFinite(firstChanged)) {
+        setSelectedWeek(firstChanged)
+      }
+      setTimeout(() => setRecentlyChangedWeeks(new Set()), 5000)
+
       const pathNumber =
         (plan.learningPaths?.findIndex((p) => p.id === pathId) ?? 0) + 1
-      toast.success(`Switched to Path ${pathNumber}`, {
+      const pathLabel = path.name ?? `Path ${pathNumber}`
+      toast.success(`Switched to: ${pathLabel}`, {
         description:
-          changed > 0
-            ? `Re-arranged ${changed} ${changed === 1 ? "week" : "weeks"} · ~${path.estimatedHours} hrs total`
+          changedSet.size > 0
+            ? `Updated ${changedSet.size} ${changedSet.size === 1 ? "week" : "weeks"} · ~${path.estimatedHours} hrs total`
             : `~${path.estimatedHours} hrs total`,
       })
     },
@@ -381,6 +407,7 @@ export default function CoursePlanPage() {
                   onHoverChange={handleHoverChange}
                   selectedWeek={selectedWeek}
                   onWeekSelect={handleWeekSelect}
+                  recentlyChangedWeeks={recentlyChangedWeeks}
                 />
               </div>
               <div className="h-[400px]">
@@ -403,6 +430,7 @@ export default function CoursePlanPage() {
                     onHoverChange={handleHoverChange}
                     selectedWeek={selectedWeek}
                     onWeekSelect={handleWeekSelect}
+                    recentlyChangedWeeks={recentlyChangedWeeks}
                   />
                 </div>
               </div>

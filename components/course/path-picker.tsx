@@ -87,12 +87,12 @@ export function PathPicker({ paths, selectedPathId, onSelect }: PathPickerProps)
                     >
                       {isSelected ? <Check className="h-3.5 w-3.5" /> : pathNumber}
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        Path {pathNumber}
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {path.name ?? `Path ${pathNumber}`}
                       </p>
                       <p className="text-[11px] text-muted-foreground">
-                        Iteration {path.iteration}
+                        {path.name ? `Path ${pathNumber}` : `Iteration ${path.iteration}`}
                       </p>
                     </div>
                   </div>

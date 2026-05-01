@@ -95,6 +95,7 @@ export interface LearningPath {
   reasoning: string
   estimatedHours: string
   iteration: number
+  name?: string                                           // optional teacher-facing title
 }
 
 export interface CoursePlan {

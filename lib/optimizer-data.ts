@@ -177,18 +177,163 @@ export function loadCalculusMaterials(): CourseMaterial[] {
 
 // ---------- Learning paths (10 ranked alternatives) ----------
 
+// Teacher-friendly summaries used in place of the raw optimizer reasoning
+// text (which references KC IDs and is dense). Indexed by path key.
+const CALCULUS_PATH_OVERRIDES: Record<
+  string,
+  { name: string; reasoning: string }
+> = {
+  path_1: {
+    name: "Standard textbook order",
+    reasoning:
+      "The classic sequence: limits and continuity, then derivatives and their applications, then integrals and the Fundamental Theorem, then differential equations, and finally sequences and series. Most predictable for students who've never seen calculus, and easiest to align with the most common textbooks. Pairs well with weekly problem sets.",
+  },
+  path_2: {
+    name: "Compressed for shorter terms",
+    reasoning:
+      "A leaner ordering for 10-12 week terms. Builds computational fluency quickly — differentiation rules and integration techniques arrive early — and trims time spent on applications that aren't on the final exam. Good for summer or intersession courses where pace matters.",
+  },
+  path_3: {
+    name: "Mixed analytic + numerical",
+    reasoning:
+      "Introduces numerical methods (numerical derivatives, Euler's method, Riemann sums on data) alongside the analytic versions of each topic. Best for engineering and data-science cohorts where students need to compute as much as they prove. Pairs naturally with weekly Python or Desmos labs.",
+  },
+  path_4: {
+    name: "Cross-cutting skills first",
+    reasoning:
+      "Front-loads notation, function-of-a-function thinking, and the algebra-of-calculus moves students will reuse all term. Specific applications (optimization, kinematics) come slightly later. Reduces the 'I don't know what the symbols mean' fatigue that derails the first three weeks of many calculus courses.",
+  },
+  path_5: {
+    name: "Applications-driven",
+    reasoning:
+      "Each new technique is paired with a real-world modeling problem the same week — derivatives with motion, integrals with area and work, differential equations with population growth. Best for non-major courses (life sciences, business calculus) where motivation is half the battle.",
+  },
+  path_6: {
+    name: "Series-aware throughout",
+    reasoning:
+      "Threads sequence and series intuition across the whole term rather than saving it for the last three weeks (where it usually gets cut). Limits at infinity, geometric series, and Taylor approximations show up gradually. Good for honors tracks heading into analysis or differential equations.",
+  },
+  path_7: {
+    name: "Optimization sprint",
+    reasoning:
+      "Devotes weeks 4-6 to a deep run on curve sketching, extrema, and applied optimization — the chapter most students struggle with. Trades some breadth in advanced integration for fluency on the topics that show up most on standardized exams.",
+  },
+  path_8: {
+    name: "Conceptual track",
+    reasoning:
+      "Slow, careful build on limits, the formal definition of the derivative, and the Fundamental Theorem. Drops some advanced integration techniques to make room. Best when assessment style favors short proofs and conceptual questions over computation-heavy problem sets.",
+  },
+  path_9: {
+    name: "AP-paced (AB-style)",
+    reasoning:
+      "Mirrors the College Board AP Calculus AB pacing: limits and derivatives by the midterm, integrals through the FTC by week 10, applications and a brief series intro to close out. Useful as a calibration target for high school dual-enrollment or early-college courses.",
+  },
+  path_10: {
+    name: "Honors / advanced",
+    reasoning:
+      "Assumes strong algebra and trig fluency on day one. Higher-complexity topics (advanced integration, parametric and polar, full series convergence) come earlier; less time spent on warm-up. Best for honors or accelerated cohorts headed straight into multi-variable next term.",
+  },
+}
+
 export function loadCalculusPaths(): LearningPath[] {
   const paths = calculusPathsData.kc_learning_paths
   return Object.keys(paths).map((key) => {
     const p = paths[key]
+    const override = CALCULUS_PATH_OVERRIDES[key]
     return {
       id: key,
       kcSequence: p.kc_sequence.map(parseKCEntry),
-      reasoning: p.reasoning,
+      reasoning: override?.reasoning ?? p.reasoning,
       estimatedHours: p.estimated_study_hours,
       iteration: p.generation_iteration,
+      name: override?.name,
     }
   })
+}
+
+// ---------- Topic-keyed discussion prompts ----------
+//
+// Used to seed each week with believable discussion questions when the
+// path-distribution helpers generate the schedule, so demo cohorts don't
+// see empty "No discussion questions added" stubs.
+
+const DISCUSSION_BANKS: { kw: string[]; prompts: string[] }[] = [
+  {
+    kw: ["limit", "continuity"],
+    prompts: [
+      "Where does the intuitive notion of a limit break down, and why do we need the formal ε-δ definition?",
+      "Identify a real-world scenario where a function fails one of the three continuity conditions.",
+      "How does L'Hôpital's Rule generalize the limit definition of the derivative?",
+    ],
+  },
+  {
+    kw: ["derivative", "differen", "tangent"],
+    prompts: [
+      "Why is the limit definition of the derivative more powerful than rules like the power rule?",
+      "Compare how a physicist, an economist, and a biologist would interpret the same derivative value.",
+      "Construct a function that is continuous everywhere but not differentiable at one point. Justify.",
+    ],
+  },
+  {
+    kw: ["optim", "extrema", "curve sketching"],
+    prompts: [
+      "When is a local extremum not a global extremum? Describe the bookkeeping that prevents missing one.",
+      "Pick a real-world optimization problem your students would care about — set up the constraint and objective.",
+      "Why does the second derivative test sometimes fail, and what's the fallback?",
+    ],
+  },
+  {
+    kw: ["kinematic", "motion"],
+    prompts: [
+      "Translate a physical motion problem into derivatives. Where does the chain rule sneak in?",
+      "Why is acceleration the second derivative of position, and how does that constrain the kinds of motion functions we can write?",
+      "When is average velocity equal to instantaneous velocity? What does the MVT promise?",
+    ],
+  },
+  {
+    kw: ["integral", "integration", "riemann", "ftc", "antideriv"],
+    prompts: [
+      "Explain how Riemann sums make the leap from finite arithmetic to continuous accumulation.",
+      "Why is the Fundamental Theorem of Calculus considered the conceptual bridge of single-variable calculus?",
+      "Sketch a definite integral problem where antiderivative methods fail and numerical methods are required.",
+    ],
+  },
+  {
+    kw: ["series", "sequence", "taylor", "power series"],
+    prompts: [
+      "When does a Taylor polynomial give a useful approximation, and when does it break down?",
+      "Compare convergence diagnostics: ratio test vs comparison test — when does each shine?",
+      "Construct a function whose Taylor series converges but converges to the wrong value.",
+    ],
+  },
+  {
+    kw: ["differential equation", " ode"],
+    prompts: [
+      "When is qualitative analysis (slope fields, equilibria) preferable to solving an ODE analytically?",
+      "Pick a real-world quantity (population, drug concentration, charge) — model it with a separable ODE.",
+      "Why might Euler's method fail catastrophically on a stiff ODE, and what's the practical fix?",
+    ],
+  },
+  {
+    kw: ["cross-cutting", "computational", "skills"],
+    prompts: [
+      "Which algebraic moves break down most often in your students' work? Where's the misconception?",
+      "Pick a notation convention students stumble over (dy/dx vs y′ vs Df) — when does it matter?",
+      "What's a problem where the wrong substitution choice doubles the work?",
+    ],
+  },
+]
+
+function generateDiscussionPrompts(topic: string, focus: string): string[] {
+  const hay = `${topic} ${focus}`.toLowerCase()
+  for (const bank of DISCUSSION_BANKS) {
+    if (bank.kw.some((k) => hay.includes(k))) return bank.prompts
+  }
+  return [
+    `Compare two approaches students might take to ${topic.toLowerCase() || "this week's problem"} — when does each fail?`,
+    `Apply this week's concepts to a problem from another discipline. Where does the analogy break?`,
+    `What misconception do you expect students to bring into this topic? How would you surface it?`,
+  ]
 }
 
 // ---------- Distribute a path across N weeks ----------
@@ -263,6 +408,7 @@ export function pathToWeeks(
       readings,
       conceptsIntroduced: slice.map((k) => k.kcLabel),
       inClassFocus,
+      discussionQuestions: generateDiscussionPrompts(slice[0].kcLabel, inClassFocus),
       estimatedHours: hoursPerWeek,
     })
   }
@@ -594,6 +740,7 @@ export function applyPathToConcepts(
       readings,
       conceptsIntroduced: slice.map((k) => k.kcLabel),
       inClassFocus,
+      discussionQuestions: generateDiscussionPrompts(slice[0].kcLabel, inClassFocus),
       estimatedHours: hoursPerWeek,
     })
   }
