@@ -67,30 +67,40 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Link href="/sample" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline">
-                or see a sample course
+              <Link href="/sample?course=calculus" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline">
+                or see the optimizer-built Calculus course
               </Link>
             </div>
           </div>
         </section>
 
-        {/* Trust Strip */}
-        <section className="border-t border-border py-16 md:py-20 px-4">
+        {/* Stats strip — real numbers from the optimizer pipeline */}
+        <section className="border-t border-border py-12 md:py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <p className="text-sm text-muted-foreground mb-8">
-              Built for graduate seminars and upper-undergrad courses where the syllabus is stitched from papers, not a single textbook.
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-6">
+              Behind the scenes — last optimizer run
             </p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-4">
-              In use by instructors at
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-              <span className="text-sm font-medium text-muted-foreground/50">Cornell</span>
-              <span className="text-sm font-medium text-muted-foreground/50">MIT</span>
-              <span className="text-sm font-medium text-muted-foreground/50">Stanford</span>
-              <span className="text-sm font-medium text-muted-foreground/50">CMU</span>
-              <span className="text-sm font-medium text-muted-foreground/50">Waterloo</span>
-              <span className="text-sm font-medium text-muted-foreground/50">ETH</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
+              <div>
+                <p className="text-3xl font-semibold text-foreground tabular-nums">261</p>
+                <p className="text-xs text-muted-foreground mt-1">learning segments extracted</p>
+              </div>
+              <div>
+                <p className="text-3xl font-semibold text-foreground tabular-nums">23</p>
+                <p className="text-xs text-muted-foreground mt-1">knowledge components</p>
+              </div>
+              <div>
+                <p className="text-3xl font-semibold text-foreground tabular-nums">8</p>
+                <p className="text-xs text-muted-foreground mt-1">prerequisite chains</p>
+              </div>
+              <div>
+                <p className="text-3xl font-semibold text-foreground tabular-nums">10</p>
+                <p className="text-xs text-muted-foreground mt-1">ranked learning paths</p>
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground mt-6 max-w-xl mx-auto">
+              From an 8-chapter undergraduate calculus textbook. The pipeline is offline; results are cached and served instantly.
+            </p>
           </div>
         </section>
 
@@ -150,29 +160,73 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Sample Course Embed */}
+        {/* Two Example Courses */}
         <section className="border-t border-border py-16 md:py-24 px-4">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground text-center mb-12">
-              See a real course.
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground text-center mb-3">
+              Two real example courses.
             </h2>
-            
-            <div className="border border-border rounded-lg overflow-hidden bg-card">
-              <div className="aspect-[16/9] relative bg-secondary/30">
-                <iframe
-                  src="/sample"
-                  className="absolute inset-0 w-full h-full"
-                  title="Sample Course Preview"
-                />
-              </div>
-            </div>
-            
-            <div className="text-center mt-6">
-              <Link 
-                href="/sample" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+            <p className="text-sm text-muted-foreground text-center mb-12 max-w-xl mx-auto">
+              The Calculus example was generated end-to-end from the learning-path-optimizer's run on a full undergraduate textbook. The ML Systems example is a pre-built graduate seminar.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Link
+                href="/sample?course=calculus"
+                className="group border border-border rounded-lg overflow-hidden bg-card hover:shadow-md hover:border-primary/40 transition-all p-6 flex flex-col"
               >
-                View sample course
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Optimizer-generated
+                  </span>
+                </div>
+                <h3 className="text-base font-semibold text-foreground mb-1.5">
+                  Calculus I
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                  Generated from a real run of the Python learning-path-optimizer on an 8-chapter calculus textbook. 23 knowledge components extracted, 8 prerequisite chains, 10 ranked candidate paths.
+                </p>
+                <div className="flex flex-wrap gap-1.5 mt-auto">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">14 weeks</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">Intro</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">23 KCs</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">10 paths</span>
+                </div>
+                <div className="flex items-center gap-1 mt-4 text-xs text-primary font-medium group-hover:gap-2 transition-all">
+                  View course <ArrowRight className="h-3 w-3" />
+                </div>
+              </Link>
+
+              <Link
+                href="/sample?course=ml-systems"
+                className="group border border-border rounded-lg overflow-hidden bg-card hover:shadow-md hover:border-primary/40 transition-all p-6 flex flex-col"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-9 w-9 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center">
+                    <BookOpen className="h-4 w-4 text-accent" />
+                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Graduate seminar
+                  </span>
+                </div>
+                <h3 className="text-base font-semibold text-foreground mb-1.5">
+                  Machine Learning Systems
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                  A 14-week graduate sequence on distributed training, memory optimization, and LLM serving. Built from 16 papers with concept dependencies and 6 alternative orderings.
+                </p>
+                <div className="flex flex-wrap gap-1.5 mt-auto">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">14 weeks</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">Graduate</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">30 concepts</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-secondary text-foreground">6 paths</span>
+                </div>
+                <div className="flex items-center gap-1 mt-4 text-xs text-primary font-medium group-hover:gap-2 transition-all">
+                  View course <ArrowRight className="h-3 w-3" />
+                </div>
               </Link>
             </div>
           </div>
@@ -244,8 +298,8 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Link href="/sample" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline">
-                or see a sample course
+              <Link href="/sample?course=calculus" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline">
+                or see the optimizer-built Calculus course
               </Link>
             </div>
           </div>
