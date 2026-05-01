@@ -418,9 +418,23 @@ export default function CoursePlanPage() {
             {/* Desktop: 2-panel */}
             <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-full">
               <div className="col-span-8">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <h2 className="text-sm font-medium text-foreground">Weekly Schedule</h2>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <h2 className="text-sm font-medium text-foreground">Weekly Schedule</h2>
+                  </div>
+                  {plan?.selectedPathId && plan?.learningPaths && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Route className="h-3 w-3" />
+                      <span>
+                        Path:{" "}
+                        <span className="font-medium text-foreground">
+                          {plan.learningPaths.find((p) => p.id === plan.selectedPathId)?.name ??
+                            `Path ${(plan.learningPaths.findIndex((p) => p.id === plan.selectedPathId) ?? 0) + 1}`}
+                        </span>
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="h-[calc(100%-32px)]">
                   <WeekSchedule

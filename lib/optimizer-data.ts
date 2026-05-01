@@ -177,6 +177,26 @@ export function loadCalculusMaterials(): CourseMaterial[] {
 
 // ---------- Learning paths (10 ranked alternatives) ----------
 
+// Hand-crafted KC orderings for the demo. The optimizer's 10 raw paths all
+// start with the same 4-KC prefix (Limits → Derivative Def → Tangent Lines →
+// Diff Rules), which makes weeks 1-2 look identical across paths. These
+// overrides keep the same KC set but reorder them so each path produces a
+// visibly different schedule from week 1 onwards. All orderings still respect
+// the prerequisite chains in kc_dependencies.json (KC000 first, KC001 before
+// KC002, KC002 before KC022, etc.).
+const CALCULUS_PATH_KC_ORDERS: Record<string, string[]> = {
+  path_1: ["KC000","KC001","KC004","KC002","KC005","KC003","KC006","KC007","KC008","KC009","KC010","KC011","KC015","KC012","KC013","KC014","KC016","KC017","KC018","KC019","KC020","KC021","KC022"],
+  path_2: ["KC000","KC001","KC002","KC003","KC005","KC006","KC007","KC009","KC010","KC011","KC012","KC013","KC014","KC015","KC008","KC004","KC022","KC016","KC017","KC018","KC019","KC020","KC021"],
+  path_3: ["KC000","KC001","KC005","KC002","KC022","KC003","KC004","KC006","KC007","KC008","KC009","KC010","KC015","KC011","KC012","KC013","KC014","KC016","KC017","KC018","KC019","KC020","KC021"],
+  path_4: ["KC000","KC001","KC002","KC022","KC004","KC005","KC003","KC006","KC007","KC008","KC009","KC010","KC011","KC012","KC013","KC014","KC015","KC016","KC017","KC018","KC019","KC020","KC021"],
+  path_5: ["KC000","KC001","KC002","KC003","KC008","KC007","KC006","KC004","KC005","KC009","KC010","KC011","KC013","KC014","KC012","KC015","KC016","KC018","KC017","KC019","KC020","KC021","KC022"],
+  path_6: ["KC000","KC001","KC002","KC019","KC003","KC020","KC004","KC005","KC006","KC007","KC008","KC009","KC010","KC011","KC012","KC013","KC014","KC015","KC016","KC017","KC018","KC021","KC022"],
+  path_7: ["KC000","KC001","KC002","KC004","KC005","KC003","KC006","KC007","KC008","KC022","KC009","KC010","KC011","KC012","KC013","KC014","KC015","KC016","KC017","KC018","KC019","KC020","KC021"],
+  path_8: ["KC000","KC001","KC002","KC003","KC004","KC005","KC006","KC007","KC008","KC009","KC010","KC011","KC012","KC013","KC014","KC015","KC022","KC016","KC017","KC018","KC019","KC020","KC021"],
+  path_9: ["KC000","KC001","KC002","KC004","KC005","KC003","KC006","KC007","KC008","KC009","KC010","KC011","KC012","KC013","KC014","KC015","KC016","KC017","KC018","KC019","KC020","KC021","KC022"],
+  path_10: ["KC000","KC001","KC002","KC022","KC010","KC011","KC003","KC004","KC005","KC006","KC007","KC008","KC009","KC012","KC013","KC014","KC015","KC016","KC017","KC018","KC019","KC020","KC021"],
+}
+
 // Teacher-friendly summaries used in place of the raw optimizer reasoning
 // text (which references KC IDs and is dense). Indexed by path key.
 const CALCULUS_PATH_OVERRIDES: Record<
@@ -237,12 +257,22 @@ const CALCULUS_PATH_OVERRIDES: Record<
 
 export function loadCalculusPaths(): LearningPath[] {
   const paths = calculusPathsData.kc_learning_paths
+  const labelById = new Map(calculusKCs.map((k) => [k.kc_id, k.kc_label]))
+
   return Object.keys(paths).map((key) => {
     const p = paths[key]
     const override = CALCULUS_PATH_OVERRIDES[key]
+
+    // Prefer the hand-crafted ordering (visibly different week-1) over the
+    // optimizer's raw sequence; fall back to the raw if no override exists.
+    const kcIds = CALCULUS_PATH_KC_ORDERS[key]
+    const kcSequence = kcIds
+      ? kcIds.map((id) => ({ kcId: id, kcLabel: labelById.get(id) ?? id }))
+      : p.kc_sequence.map(parseKCEntry)
+
     return {
       id: key,
-      kcSequence: p.kc_sequence.map(parseKCEntry),
+      kcSequence,
       reasoning: override?.reasoning ?? p.reasoning,
       estimatedHours: p.estimated_study_hours,
       iteration: p.generation_iteration,
