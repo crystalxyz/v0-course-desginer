@@ -297,49 +297,47 @@ export function ProblemSetModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl h-[85vh] flex flex-col overflow-hidden">
-        <DialogHeader className="flex-shrink-0 pb-4 border-b border-border">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <DialogTitle className="text-lg font-semibold">
-                Week {weekNumber}: {topic}
-              </DialogTitle>
-              {problemSet && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  {problemSet.questions.length} questions • {mcqCount} MCQ, {shortAnswerCount} short answer
-                </p>
+        <DialogHeader className="flex-shrink-0 pb-4 border-b border-border space-y-3">
+          <div>
+            <DialogTitle className="text-lg font-semibold">
+              Week {weekNumber}: {topic}
+            </DialogTitle>
+            {problemSet && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {problemSet.questions.length} questions • {mcqCount} MCQ, {shortAnswerCount} short answer
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRegenerate}
+              disabled={isRegenerating || isLoading}
+            >
+              {isRegenerating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
               )}
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRegenerate}
-                disabled={isRegenerating || isLoading}
-              >
-                {isRegenerating ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                )}
-                Regenerate
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportCSV}
-                disabled={!problemSet || isLoading}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!problemSet || isLoading}
-              >
-                Export as Canvas QTI
-              </Button>
-            </div>
+              Regenerate
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCSV}
+              disabled={!problemSet || isLoading}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!problemSet || isLoading}
+            >
+              Export as Canvas QTI
+            </Button>
           </div>
         </DialogHeader>
 
