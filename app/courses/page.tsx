@@ -13,23 +13,20 @@ import {
   BookOpen,
   ChevronRight,
   FileText,
-  AlertTriangle,
   Copy,
   Star,
-  CheckCircle2,
   Network,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { sampleCourseSettings, sampleMaterials, sampleGapWarnings, sampleConcepts } from "@/lib/mock-course-data"
+import { sampleCourseSettings, sampleMaterials, sampleConcepts } from "@/lib/mock-course-data"
 import type { CourseSettings } from "@/lib/course-types"
 
 interface SavedCourse {
   settings: CourseSettings
   materialsCount: number
   conceptsCount: number
-  gapCount: number
   lastEdited: string
 }
 
@@ -52,7 +49,6 @@ export default function CoursesPage() {
         settings,
         materialsCount: materials.length,
         conceptsCount: 0,
-        gapCount: 0,
         lastEdited: new Date().toISOString(),
       })
     }
@@ -171,17 +167,7 @@ export default function CoursesPage() {
                         <Network className="h-3 w-3 mr-1" />
                         {sampleConcepts.length} concepts
                       </Badge>
-                      {sampleGapWarnings.length > 0 ? (
-                        <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-200">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          {sampleGapWarnings.length} gap{sampleGapWarnings.length > 1 ? "s" : ""}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/20">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          No gaps
-                        </Badge>
-                      )}
+
                     </div>
                     <div className="flex gap-3">
                       <Button size="sm" asChild>
@@ -257,12 +243,7 @@ export default function CoursesPage() {
                                 {course.materialsCount} materials
                               </Badge>
                             )}
-                            {course.gapCount > 0 && (
-                              <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-200">
-                                <AlertTriangle className="h-3 w-3 mr-1" />
-                                {course.gapCount} gap{course.gapCount > 1 ? "s" : ""}
-                              </Badge>
-                            )}
+
                           </div>
                           {course.settings.studentBackground && (
                             <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
