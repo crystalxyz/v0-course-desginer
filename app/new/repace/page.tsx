@@ -32,6 +32,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { setPlanFastForward } from "@/lib/templates"
 import { sampleConcepts, sampleWeeks, proposeRepacing, sampleCoursePlan } from "@/lib/mock-course-data"
 import type { ScheduleChange } from "@/lib/mock-course-data"
 import type { CourseWeek } from "@/lib/course-types"
@@ -137,6 +138,8 @@ export default function RepacePage() {
             : "No changes selected — plan unchanged.",
       }
     )
+    // Skip the staged optimizer animation when bouncing back to the plan.
+    setPlanFastForward()
     router.push("/new/plan")
   }
 
@@ -193,11 +196,16 @@ export default function RepacePage() {
             </div>
             <span className="font-semibold text-foreground text-lg">Course Designer</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/new/plan">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to plan
-            </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setPlanFastForward()
+              router.push("/new/plan")
+            }}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to plan
           </Button>
         </div>
       </header>
@@ -415,11 +423,16 @@ export default function RepacePage() {
 
               {/* Actions */}
               <div className="flex justify-between">
-                <Button variant="outline" size="lg" asChild>
-                  <Link href="/new/plan">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Link>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    setPlanFastForward()
+                    router.push("/new/plan")
+                  }}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
                 </Button>
                 <Button
                   size="lg"

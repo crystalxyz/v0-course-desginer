@@ -81,3 +81,21 @@ export function clearWizardState(): void {
   localStorage.removeItem("currentCourseMaterials")
   sessionStorage.removeItem(TEMPLATE_FAST_MODE_KEY)
 }
+
+// Signal that the next /new/plan visit should skip its staged optimizer
+// animation. Set by Re-pace's Apply Changes and Export's Back-to-plan
+// navigation, so coming back to a plan you just generated doesn't make
+// you sit through the loader again.
+export const PLAN_FAST_FORWARD_KEY = "planFastForward"
+
+export function setPlanFastForward(): void {
+  if (typeof window === "undefined") return
+  sessionStorage.setItem(PLAN_FAST_FORWARD_KEY, "1")
+}
+
+export function consumePlanFastForward(): boolean {
+  if (typeof window === "undefined") return false
+  const v = sessionStorage.getItem(PLAN_FAST_FORWARD_KEY)
+  if (v) sessionStorage.removeItem(PLAN_FAST_FORWARD_KEY)
+  return v === "1"
+}

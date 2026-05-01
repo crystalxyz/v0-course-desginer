@@ -38,7 +38,7 @@ import {
 } from "@/lib/mock-course-data"
 import { calculusOptimizerStats, applyPathToConcepts } from "@/lib/optimizer-data"
 import { buildShareUrl } from "@/lib/share-url"
-import { consumeTemplateFastMode } from "@/lib/templates"
+import { consumeTemplateFastMode, consumePlanFastForward } from "@/lib/templates"
 import type {
   CourseSettings,
   CourseMaterial,
@@ -94,9 +94,15 @@ export default function CoursePlanPage() {
     // "step through a sample" they've already picked pre-built content;
     // skip the staged optimizer animation and show the plan immediately.
     const fastTemplate = consumeTemplateFastMode()
-    if (fastTemplate) {
-      const basePlan =
-        fastTemplate === "calculus" ? sampleCalculusCoursePlan : sampleCoursePlan
+    // Same fast path when the user is coming BACK from /new/repace or
+    // /new/plan/export — they already saw the plan generated once.
+    const fastForward = consumePlanFastForward()
+
+    if (fastTemplate || fastForward) {
+      const isCalc = fastTemplate
+        ? fastTemplate === "calculus"
+        : (storedSettings && JSON.parse(storedSettings)?.title?.toLowerCase().includes("calculus")) || false
+      const basePlan = isCalc ? sampleCalculusCoursePlan : sampleCoursePlan
       setPlan({
         ...basePlan,
         id: `plan-${Date.now()}`,

@@ -18,6 +18,7 @@ import {
   ExternalLink,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   sampleCoursePlan,
@@ -29,6 +30,8 @@ import {
   calculusCourseSettings,
   calculusSampleMaterials,
 } from "@/lib/optimizer-data"
+import { buildShareUrl } from "@/lib/share-url"
+import { setPlanFastForward } from "@/lib/templates"
 import type { CourseSettings, CourseMaterial, CoursePlan } from "@/lib/course-types"
 
 type ExportFormat = "markdown" | "canvas" | "link"
@@ -252,6 +255,7 @@ const exportOptions: ExportOption[] = [
 ]
 
 export default function ExportPage() {
+  const router = useRouter()
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [exportComplete, setExportComplete] = useState(false)
@@ -298,7 +302,10 @@ export default function ExportPage() {
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     if (selectedFormat === "link") {
-      setShareLink(`https://coursedesigner.app/share/${Math.random().toString(36).slice(2, 10)}`)
+      // Real, self-contained share URL — same encoder used by the Share
+      // button on /sample and /new/plan. Recipients open the URL and the
+      // /share/[slug] page decodes the course state from the fragment.
+      setShareLink(buildShareUrl({ v: 1, settings, materials, plan }))
     }
 
     setIsExporting(false)
@@ -342,11 +349,16 @@ export default function ExportPage() {
             </div>
             <span className="font-semibold text-foreground text-lg">Course Designer</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/new/plan">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to plan
-            </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setPlanFastForward()
+              router.push("/new/plan")
+            }}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to plan
           </Button>
         </div>
       </header>
