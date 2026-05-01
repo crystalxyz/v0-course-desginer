@@ -38,6 +38,7 @@ export interface Concept {
   dependencies: string[]
   coveredBy: string[] // material IDs
   isGap?: boolean // true if assumed but never covered
+  description?: string
 }
 
 export interface WeekReading {
@@ -54,6 +55,7 @@ export interface CourseWeek {
   inClassFocus: string
   problemSet?: string[]
   discussionQuestions?: string[]
+  estimatedHours?: number
 }
 
 export interface OutcomeCoverage {
@@ -61,6 +63,30 @@ export interface OutcomeCoverage {
   coveredInWeeks: number[]
   coveredByReadings: string[]
   isCovered: boolean
+}
+
+export interface GapWarning {
+  concept: string
+  assumedInWeek: number
+  introducedInWeek?: number
+  assumedByMaterial: string
+  assumedByReading?: string
+  dependentConcept?: string
+  suggestion?: string
+  suggestedFix?: {
+    type: "move-reading" | "add-primer" | "reorder-weeks"
+    fromWeek?: number
+    toWeek?: number
+    materialId?: string
+    concept?: string
+    description?: string
+  }
+  alternativeFix?: {
+    type: "move-reading" | "add-primer" | "reorder-weeks"
+    week?: number
+    concept?: string
+    description?: string
+  }
 }
 
 export interface CoursePlan {
@@ -73,13 +99,6 @@ export interface CoursePlan {
   generatedAt: Date
 }
 
-export interface GapWarning {
-  concept: string
-  assumedInWeek: number
-  assumedByMaterial: string
-  suggestion?: string
-}
-
 export interface CohortSignal {
   type: "assignment-scores" | "struggle-feedback"
   topic?: string
@@ -89,7 +108,7 @@ export interface CohortSignal {
 }
 
 export interface ScheduleEdit {
-  type: "push-back" | "add-review" | "swap-reading" | "remove"
+  type: "push-back" | "add-review" | "swap-reading" | "remove" | "add-primer"
   weekNumber: number
   description: string
   originalValue?: string
@@ -108,4 +127,11 @@ export interface SampleCourse {
   settings: CourseSettings
   materials: CourseMaterial[]
   plan: CoursePlan
+}
+
+// Hover state for cross-panel highlighting
+export interface HoverState {
+  type: "material" | "concept" | "week" | null
+  id: string | null
+  weekNumber?: number
 }

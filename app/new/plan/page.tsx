@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   GraduationCap,
-  ArrowLeft,
   Download,
   Share2,
   RefreshCw,
@@ -15,14 +14,33 @@ import {
   Calendar,
   Target,
   Check,
+  BookOpen,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ConceptGraph } from "@/components/course/concept-graph"
 import { WeekSchedule } from "@/components/course/week-schedule"
 import { OutcomesTracker } from "@/components/course/outcomes-tracker"
-import { generateCoursePlan, sampleCoursePlan, sampleConcepts, sampleWeeks, sampleOutcomeCoverage, sampleGapWarnings } from "@/lib/mock-course-data"
-import type { CourseSettings, CourseMaterial, CoursePlan, CourseWeek, Concept } from "@/lib/course-types"
+import { MaterialsPanel } from "@/components/course/materials-panel"
+import { ConceptDetail } from "@/components/course/concept-detail"
+import { GapsSheet, GapIndicator } from "@/components/course/gaps-sheet"
+import { 
+  sampleCoursePlan, 
+  sampleConcepts, 
+  sampleWeeks, 
+  sampleOutcomeCoverage, 
+  sampleGapWarnings,
+  sampleMaterials,
+} from "@/lib/mock-course-data"
+import type { 
+  CourseSettings, 
+  CourseMaterial, 
+  CoursePlan, 
+  CourseWeek, 
+  Concept,
+  HoverState,
+  GapWarning,
+} from "@/lib/course-types"
 
 export default function CoursePlanPage() {
   const router = useRouter()
@@ -31,6 +49,13 @@ export default function CoursePlanPage() {
   const [materials, setMaterials] = useState<CourseMaterial[]>([])
   const [plan, setPlan] = useState<CoursePlan | null>(null)
   const [activeTab, setActiveTab] = useState("schedule")
+  const [rightPanelTab, setRightPanelTab] = useState<"outcomes" | "materials" | "concept">("outcomes")
+  
+  // Interaction state
+  const [hoverState, setHoverState] = useState<HoverState>({ type: null, id: null })
+  const [selectedConcept, setSelectedConcept] = useState<Concept | null>(null)
+  const [selectedWeek, setSelectedWeek] = useState<number | undefined>(undefined)
+  const [gapsSheetOpen, setGapsSheetOpen] = useState(false)
 
   useEffect(() => {
     // Load settings and materials from localStorage
@@ -42,6 +67,8 @@ export default function CoursePlanPage() {
     }
     if (storedMaterials) {
       setMaterials(JSON.parse(storedMaterials))
+    } else {
+      setMaterials(sampleMaterials)
     }
 
     // Simulate plan generation
@@ -63,7 +90,7 @@ export default function CoursePlanPage() {
     generatePlan()
   }, [])
 
-  const handleUpdateWeek = (weekNumber: number, updates: Partial<CourseWeek>) => {
+  const handleUpdateWeek = useCallback((weekNumber: number, updates: Partial<CourseWeek>) => {
     if (!plan) return
 
     const updatedWeeks = plan.weeks.map((week) =>
@@ -71,21 +98,46 @@ export default function CoursePlanPage() {
     )
 
     setPlan({ ...plan, weeks: updatedWeeks })
-  }
+  }, [plan])
 
-  const handleExport = (format: string) => {
-    // Navigate to export page or trigger download
-    router.push(`/new/plan/export?format=${format}`)
-  }
+  const handleConceptClick = useCallback((concept: Concept) => {
+    setSelectedConcept(concept)
+    setRightPanelTab("concept")
+  }, [])
 
-  const conceptsWithWeeks: Concept[] = plan
-    ? plan.conceptGraph.map((concept, i) => ({
-        ...concept,
-        weekIntroduced: Math.ceil((i + 1) / 2),
-      }))
-    : sampleConcepts.map((c, i) => ({ ...c, weekIntroduced: Math.ceil((i + 1) / 2) }))
+  const handleCloseConceptDetail = useCallback(() => {
+    setSelectedConcept(null)
+    setRightPanelTab("outcomes")
+  }, [])
 
+  const handleHoverChange = useCallback((state: HoverState) => {
+    setHoverState(state)
+  }, [])
+
+  const handleGapClick = useCallback((warning: GapWarning) => {
+    setGapsSheetOpen(true)
+  }, [])
+
+  const handleApplyFix = useCallback((gapIndex: number, fixType: "primary" | "alternative") => {
+    // In production, this would update the plan
+    console.log(`Applying ${fixType} fix for gap ${gapIndex}`)
+    // For now, just close the sheet
+    setGapsSheetOpen(false)
+  }, [])
+
+  const handleScrollToWeek = useCallback((week: number) => {
+    setSelectedWeek(week)
+    setGapsSheetOpen(false)
+    // Could add smooth scrolling to the week card here
+  }, [])
+
+  const handleWeekSelect = useCallback((week: number) => {
+    setSelectedWeek(week)
+  }, [])
+
+  const conceptsWithWeeks: Concept[] = plan?.conceptGraph || sampleConcepts
   const gapConceptNames = plan?.gapWarnings.map((g) => g.concept) || []
+  const currentMaterials = materials.length > 0 ? materials : sampleMaterials
 
   if (isGenerating) {
     return (
@@ -144,6 +196,11 @@ export default function CoursePlanPage() {
             <span className="font-semibold text-foreground text-lg">Course Designer</span>
           </Link>
           <div className="flex items-center gap-3">
+            {/* Gap Indicator */}
+            <GapIndicator 
+              gapCount={plan?.gapWarnings.length || 0}
+              onClick={() => setGapsSheetOpen(true)}
+            />
             <Button variant="outline" size="sm" asChild>
               <Link href="/new/repace">
                 <RefreshCw className="mr-2 h-4 w-4" />
@@ -215,13 +272,11 @@ export default function CoursePlanPage() {
                   {courseSettings?.hoursPerWeek || 3} hrs/week
                 </Badge>
                 <Badge variant="secondary" className="text-xs">
-                  {materials.length} materials
+                  {currentMaterials.length} materials
                 </Badge>
-                {plan?.gapWarnings && plan.gapWarnings.length > 0 && (
-                  <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-200">
-                    {plan.gapWarnings.length} gap warning{plan.gapWarnings.length > 1 ? "s" : ""}
-                  </Badge>
-                )}
+                <Badge variant="secondary" className="text-xs">
+                  {conceptsWithWeeks.length} concepts
+                </Badge>
               </div>
             </div>
           </div>
@@ -250,7 +305,11 @@ export default function CoursePlanPage() {
             <TabsContent value="graph" className="h-[500px]">
               <ConceptGraph
                 concepts={conceptsWithWeeks}
+                materials={currentMaterials}
                 gapConcepts={gapConceptNames}
+                onConceptClick={handleConceptClick}
+                hoverState={hoverState}
+                onHoverChange={handleHoverChange}
               />
             </TabsContent>
             <TabsContent value="schedule" className="h-[600px]">
@@ -258,6 +317,11 @@ export default function CoursePlanPage() {
                 weeks={plan?.weeks || sampleWeeks}
                 gapWarnings={plan?.gapWarnings || sampleGapWarnings}
                 onUpdateWeek={handleUpdateWeek}
+                onGapClick={handleGapClick}
+                hoverState={hoverState}
+                onHoverChange={handleHoverChange}
+                selectedWeek={selectedWeek}
+                onWeekSelect={handleWeekSelect}
               />
             </TabsContent>
             <TabsContent value="outcomes" className="h-[600px]">
@@ -277,7 +341,11 @@ export default function CoursePlanPage() {
             <div className="h-[calc(100%-32px)]">
               <ConceptGraph
                 concepts={conceptsWithWeeks}
+                materials={currentMaterials}
                 gapConcepts={gapConceptNames}
+                onConceptClick={handleConceptClick}
+                hoverState={hoverState}
+                onHoverChange={handleHoverChange}
               />
             </div>
           </div>
@@ -293,22 +361,69 @@ export default function CoursePlanPage() {
                 weeks={plan?.weeks || sampleWeeks}
                 gapWarnings={plan?.gapWarnings || sampleGapWarnings}
                 onUpdateWeek={handleUpdateWeek}
+                onGapClick={handleGapClick}
+                hoverState={hoverState}
+                onHoverChange={handleHoverChange}
+                selectedWeek={selectedWeek}
+                onWeekSelect={handleWeekSelect}
               />
             </div>
           </div>
 
-          {/* Right: Outcomes */}
+          {/* Right: Outcomes/Materials/Concept Detail */}
           <div className="col-span-3">
+            {/* Tab Switcher */}
             <div className="flex items-center gap-2 mb-3">
-              <Target className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-sm font-medium text-foreground">Outcomes</h2>
+              <Tabs value={rightPanelTab} onValueChange={(v) => setRightPanelTab(v as typeof rightPanelTab)} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="outcomes" className="text-xs">
+                    <Target className="h-3 w-3 mr-1" />
+                    Outcomes
+                  </TabsTrigger>
+                  <TabsTrigger value="materials" className="text-xs">
+                    <BookOpen className="h-3 w-3 mr-1" />
+                    Materials
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
-            <div className="h-[calc(100%-32px)]">
-              <OutcomesTracker outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage} />
+            
+            <div className="h-[calc(100%-40px)]">
+              {rightPanelTab === "outcomes" && (
+                <OutcomesTracker outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage} />
+              )}
+              {rightPanelTab === "materials" && (
+                <MaterialsPanel 
+                  materials={currentMaterials}
+                  weeks={plan?.weeks || sampleWeeks}
+                  hoverState={hoverState}
+                  onHoverChange={handleHoverChange}
+                />
+              )}
+              {rightPanelTab === "concept" && selectedConcept && (
+                <ConceptDetail
+                  concept={selectedConcept}
+                  weeks={plan?.weeks || sampleWeeks}
+                  outcomes={plan?.outcomeCoverage || sampleOutcomeCoverage}
+                  materials={currentMaterials}
+                  allConcepts={conceptsWithWeeks}
+                  onClose={handleCloseConceptDetail}
+                  onWeekClick={handleScrollToWeek}
+                />
+              )}
             </div>
           </div>
         </div>
       </main>
+
+      {/* Gaps Sheet */}
+      <GapsSheet
+        open={gapsSheetOpen}
+        onOpenChange={setGapsSheetOpen}
+        gapWarnings={plan?.gapWarnings || sampleGapWarnings}
+        onApplyFix={handleApplyFix}
+        onScrollToWeek={handleScrollToWeek}
+      />
     </div>
   )
 }
