@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'LPO - Learning Path Optimizer',
-  description: 'Generate a personalized AI/ML learning path from your goal, timeline, and materials.',
+  title: 'Course Designer - Design coherent courses from your materials',
+  description: 'Upload your reading list. Get a prerequisite-aware schedule, anchored problem sets, and gap warnings.',
   generator: 'v0.app',
   icons: {
     icon: [
