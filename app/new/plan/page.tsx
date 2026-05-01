@@ -37,6 +37,7 @@ import {
   sampleCalculusCourse,
 } from "@/lib/mock-course-data"
 import { calculusOptimizerStats, applyPathToConcepts } from "@/lib/optimizer-data"
+import { buildShareUrl } from "@/lib/share-url"
 import type {
   CourseSettings,
   CourseMaterial,
@@ -288,8 +289,16 @@ export default function CoursePlanPage() {
             <Button
               size="sm"
               onClick={() => {
-                const slug = Math.random().toString(36).slice(2, 10)
-                const link = `https://coursedesigner.app/share/${slug}`
+                if (!plan || !courseSettings) {
+                  toast.error("Generate the plan before sharing.")
+                  return
+                }
+                const link = buildShareUrl({
+                  v: 1,
+                  settings: courseSettings,
+                  materials: currentMaterials,
+                  plan,
+                })
                 navigator.clipboard.writeText(link).catch(() => {})
                 toast.success("Share link copied", {
                   description: "Anyone with the link can view this course (read-only).",

@@ -26,6 +26,8 @@ import {
   sampleMaterials,
   sampleWeeks,
   sampleOutcomeCoverage,
+  sampleCoursePlan,
+  sampleCalculusCoursePlan,
 } from "@/lib/mock-course-data"
 import {
   calculusCourseSettings,
@@ -33,6 +35,7 @@ import {
   calculusSampleWeeks,
   calculusSampleOutcomeCoverage,
 } from "@/lib/optimizer-data"
+import { buildShareUrl } from "@/lib/share-url"
 import { cn } from "@/lib/utils"
 
 type CourseKey = "ml-systems" | "calculus"
@@ -74,8 +77,12 @@ function SampleCourseInner() {
   }
 
   const handleShare = () => {
-    const slug = Math.random().toString(36).slice(2, 10)
-    const link = `https://coursedesigner.app/share/${slug}`
+    const link = buildShareUrl({
+      v: 1,
+      settings: data.settings,
+      materials: data.materials,
+      plan: courseKey === "calculus" ? sampleCalculusCoursePlan : sampleCoursePlan,
+    })
     navigator.clipboard.writeText(link).catch(() => {})
     toast.success("Share link copied", {
       description: "Anyone with the link can view this course (read-only).",
