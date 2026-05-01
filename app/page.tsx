@@ -5,12 +5,12 @@ import { GraduationCap, ArrowRight, Plus, BookOpen, Upload, ListOrdered, Sparkle
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { seedTemplate } from "@/lib/templates"
+import { clearWizardState } from "@/lib/templates"
 
 export default function HomePage() {
   const router = useRouter()
-  const startFromTemplate = (template: "calculus" | "ml-systems") => {
-    seedTemplate(template)
+  const startFresh = () => {
+    clearWizardState()
     router.push("/new")
   }
   return (
@@ -36,11 +36,9 @@ export default function HomePage() {
             </Link>
           </nav>
           <div className="flex items-center gap-3">
-            <Button asChild size="sm">
-              <Link href="/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Start a course
-              </Link>
+            <Button size="sm" onClick={startFresh}>
+              <Plus className="mr-2 h-4 w-4" />
+              Start a course
             </Button>
           </div>
         </div>
@@ -64,23 +62,20 @@ export default function HomePage() {
             </p>
             
             <div className="flex flex-col items-center justify-center gap-4">
-              <Button 
-                asChild
-                size="lg" 
+              <Button
+                size="lg"
                 className="min-w-[200px] h-12 text-base font-medium"
+                onClick={startFresh}
               >
-                <Link href="/new">
-                  Start a course
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                Start a course
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <button
-                type="button"
-                onClick={() => startFromTemplate("ml-systems")}
+              <Link
+                href="/sample?course=ml-systems"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
               >
-                or step through a sample ML Systems course
-              </button>
+                or see a sample ML Systems course
+              </Link>
             </div>
           </div>
         </section>
@@ -269,23 +264,20 @@ export default function HomePage() {
             </h2>
             
             <div className="flex flex-col items-center justify-center gap-4">
-              <Button 
-                asChild
-                size="lg" 
+              <Button
+                size="lg"
                 className="min-w-[180px] h-11 text-base font-medium"
+                onClick={startFresh}
               >
-                <Link href="/new">
-                  Start a course
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                Start a course
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <button
-                type="button"
-                onClick={() => startFromTemplate("ml-systems")}
+              <Link
+                href="/sample?course=ml-systems"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
               >
-                or step through a sample ML Systems course
-              </button>
+                or see a sample ML Systems course
+              </Link>
             </div>
           </div>
         </section>

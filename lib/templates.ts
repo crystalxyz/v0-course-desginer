@@ -71,3 +71,13 @@ export function peekTemplateFastMode(): CourseTemplateKey | null {
     | CourseTemplateKey
     | null
 }
+
+// Wipe any prior course-creation state so a fresh wizard run starts at a
+// clean slate. Used by 'Start a course' to make sure stale localStorage from
+// a previous template seed doesn't leak into a new manual course.
+export function clearWizardState(): void {
+  if (typeof window === "undefined") return
+  localStorage.removeItem("currentCourseSettings")
+  localStorage.removeItem("currentCourseMaterials")
+  sessionStorage.removeItem(TEMPLATE_FAST_MODE_KEY)
+}

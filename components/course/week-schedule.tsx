@@ -29,60 +29,157 @@ import { ProblemSetModal } from "./problem-set-modal"
 import { sampleProblemSets, getSuggestedReadings, type SuggestedReading } from "@/lib/mock-course-data"
 import type { CourseWeek, HoverState, ProblemSet, WeekReading } from "@/lib/course-types"
 
-// Topic-keyed Bloom-style discussion prompts for the "Suggest 3" button.
-function pickDiscussionPrompts(topic: string, focus: string): string[] {
+// Topic-keyed Bloom-style discussion prompts. Each bank has 9-12 prompts so
+// repeated clicks of "Suggest 3" return fresh questions each time. The
+// caller filters out any prompts already in the week's discussionQuestions
+// before sampling.
+const DISCUSSION_BANKS: { kw: string[]; prompts: string[] }[] = [
+  { kw: ["limit", "continuity"], prompts: [
+    "Where does the intuitive notion of a limit break down, and why do we need the formal ε-δ definition?",
+    "Identify a real-world scenario where a function fails one of the three continuity conditions.",
+    "How does L'Hôpital's Rule generalize the limit definition of the derivative?",
+    "Construct a function with a removable discontinuity and one with an essential discontinuity. How do they differ in behavior?",
+    "Why does the squeeze theorem work, and when is it the only tool that does?",
+    "Explain why 'plugging in' fails for limits like sin(x)/x at x=0 — what's actually going on?",
+    "Compare a piecewise-defined function's limit at a join point vs at an interior point.",
+    "When are one-sided limits necessary, and when can you collapse to a two-sided limit?",
+    "Why do continuity and differentiability not imply each other in both directions? Give an example.",
+    "Sketch a function discontinuous at every rational and continuous at every irrational. Defend the construction.",
+  ]},
+  { kw: ["derivative", "differen", "tangent"], prompts: [
+    "Why is the limit definition of the derivative more powerful than rules like the power rule?",
+    "Compare how a physicist, an economist, and a biologist would interpret the same derivative value.",
+    "Construct a function that is continuous everywhere but not differentiable at one point. Justify.",
+    "When does the chain rule actually 'unwrap' nested operations, and when is it just bookkeeping?",
+    "Explain implicit differentiation as if to a student who's only seen explicit y = f(x) so far.",
+    "Why are the derivatives of sin(x) and cos(x) so symmetrically related? Where does the negative sign come from?",
+    "Pick a real-world rate of change (heart rate, GDP growth, learning rate). What does its derivative tell you that the function alone doesn't?",
+    "When would a numerical derivative beat an analytic one, and when does it become unreliable?",
+    "Why is local linearity such a powerful idea outside of pure calculus?",
+    "Tangent lines vs secant lines: when does each give a better answer and why?",
+  ]},
+  { kw: ["optim", "extrema", "curve sketching"], prompts: [
+    "When is a local extremum not a global extremum? Describe the bookkeeping that prevents missing one.",
+    "Pick a real-world optimization problem your students would care about — set up the constraint and objective.",
+    "Why does the second derivative test sometimes fail, and what's the fallback?",
+    "Compare optimization on a closed interval vs an open one. Where do students most often slip up?",
+    "Why is the candidates test (critical points + endpoints) sufficient on a closed interval?",
+    "How does concavity inform whether a tangent-line approximation over- or under-estimates?",
+    "Explain why Lagrange multipliers feel like 'cheating' the first time, and where they actually come from.",
+    "Curve sketching by hand vs by software — what does each force you to learn that the other hides?",
+    "What's the role of inflection points in modeling — and why do students often miss them?",
+  ]},
+  { kw: ["kinematic", "motion"], prompts: [
+    "Translate a physical motion problem into derivatives. Where does the chain rule sneak in?",
+    "Why is acceleration the second derivative of position? What does that constrain about the motions we can write?",
+    "When is average velocity equal to instantaneous velocity? What does the MVT promise?",
+    "Compare velocity-time and position-time graphs — what information lives only in each?",
+    "Why does antidifferentiation introduce a constant, and what does that mean for initial-value motion problems?",
+    "Pick a sport (sprint start, basketball arc) and decompose the motion into derivatives.",
+  ]},
+  { kw: ["integral", "integration", "riemann", "ftc", "antideriv"], prompts: [
+    "Explain how Riemann sums make the leap from finite arithmetic to continuous accumulation.",
+    "Why is the Fundamental Theorem of Calculus considered the conceptual bridge of single-variable calculus?",
+    "Sketch a definite integral problem where antiderivative methods fail and numerical methods are required.",
+    "Compare integration by parts and substitution — what tells you which to reach for?",
+    "Why does u-substitution feel like the chain rule in reverse? Where does the analogy break?",
+    "When does a definite integral represent area, and when does it represent something else (work, displacement, total change)?",
+    "Why are improper integrals 'improper'? When does the convergence question actually matter?",
+    "Trapezoidal rule vs Simpson's rule — what error does each commit, and on what kinds of integrands?",
+    "Explain the geometric meaning of the FTC: why is the area-so-far function differentiable?",
+    "When is a closed-form antiderivative impossible, and how would you know without trying every trick?",
+  ]},
+  { kw: ["series", "sequence", "taylor", "power series"], prompts: [
+    "When does a Taylor polynomial give a useful approximation, and when does it break down?",
+    "Compare convergence diagnostics: ratio test vs comparison test — when does each shine?",
+    "Construct a function whose Taylor series converges but converges to the wrong value.",
+    "Why is the geometric series the foundation of so many other convergence arguments?",
+    "Explain absolute vs conditional convergence to a student who's only seen positive-term series.",
+    "When does the integral test give a clean answer, and when is it just shifting the work?",
+    "Why does the radius of convergence exist for power series? What does it geometrically mean?",
+    "Pick a transcendental function — explain why its Taylor expansion is or isn't analytic everywhere.",
+    "Compare Maclaurin and Taylor series — when does it matter where you center?",
+  ]},
+  { kw: ["differential equation", " ode"], prompts: [
+    "When is qualitative analysis (slope fields, equilibria) preferable to solving an ODE analytically?",
+    "Pick a real-world quantity (population, drug concentration, charge) — model it with a separable ODE.",
+    "Why might Euler's method fail catastrophically on a stiff ODE, and what's the practical fix?",
+    "Compare exponential growth and logistic growth — what does the carrying capacity actually represent?",
+    "When can you solve an ODE by separation, and when do you need an integrating factor?",
+    "Why do initial conditions feel arbitrary at first but constrain solutions completely?",
+    "Explain a slope field to a student who's never seen one. What does each tick mean?",
+    "Compare numerical and analytic solutions: when do you trust each, and how do you reconcile disagreements?",
+  ]},
+  { kw: ["cross-cutting", "computational", "skills"], prompts: [
+    "Which algebraic moves break down most often in your students' work? Where's the misconception?",
+    "Pick a notation convention students stumble over (dy/dx vs y′ vs Df) — when does it matter?",
+    "What's a problem where the wrong substitution choice doubles the work?",
+    "When does dimensional analysis save you, and when is it irrelevant?",
+    "Why does sign tracking through chain-rule problems trip up so many students?",
+    "What's a habit from precalculus that actively hurts students learning calculus?",
+  ]},
+  { kw: ["distributed training", "parallel", "all-reduce", "parameter server"], prompts: [
+    "Trace a single gradient through ring all-reduce vs a parameter server — where can each fail?",
+    "When would you accept staleness in async SGD over the latency cost of synchronous training?",
+    "Design a 4-node training setup; defend your choice of data vs pipeline vs tensor parallelism.",
+    "Why does the bandwidth cost of all-reduce eventually flatten with N workers?",
+    "Compare bulk-synchronous parallel vs asynchronous parallel for ML — what convergence guarantees does each give up?",
+    "When does pipeline parallelism's bubble overhead make data parallelism the better choice?",
+    "Why is gradient accumulation a poor man's data parallelism? When does it fail?",
+    "Explain ZeRO stages 1, 2, 3 in terms of what they shard and what they cost.",
+  ]},
+  { kw: ["memory", "zero", "offload", "flashattention"], prompts: [
+    "Estimate optimizer-state memory for a 7B model — when does ZeRO-3 actually pay off?",
+    "Why does FlashAttention beat standard attention without changing the math?",
+    "Trade off: NVMe offloading vs sharding. When is each the right move?",
+    "Why is HBM bandwidth the bottleneck in modern GPU training, not FLOPs?",
+    "Compare gradient checkpointing and activation recomputation — when do they differ?",
+    "When would you reach for mixed precision, and when does it bite you?",
+    "Why is KV cache memory the fastest-growing budget item in LLM inference?",
+  ]},
+  { kw: ["serving", "inference", "batching", "kv cache"], prompts: [
+    "Compare static batching, dynamic batching, and continuous batching — what request distribution favors each?",
+    "How does PagedAttention solve the KV-cache memory fragmentation problem?",
+    "Design a serving system that meets a P99 latency SLA on mixed-length requests.",
+    "When does speculative decoding pay off, and when does it just add latency?",
+    "Why is throughput-vs-latency a fundamental trade-off in LLM serving?",
+    "Compare model quantization strategies: INT8 vs INT4 vs FP8 — what breaks first?",
+    "Explain iteration-level scheduling to someone who's only seen request-level batching.",
+    "Why do GPU utilization metrics lie about LLM serving efficiency?",
+  ]},
+]
+
+const GENERIC_PROMPTS = [
+  "Compare two approaches students might take to this week's problem — when does each fail?",
+  "Apply this week's concepts to a problem from another discipline. Where does the analogy break?",
+  "What misconception do you expect students to bring into this topic? How would you surface it?",
+  "Where would a graduate student in a different sub-field push back on this material?",
+  "Pick a homework problem that looks routine but hides a subtle conceptual trap. Describe the trap.",
+  "What would the same question look like in a teaching context with no whiteboard, only worksheets?",
+  "Which idea from this week is most under-emphasized by standard textbooks? Why?",
+  "Sketch how you'd assess understanding of this week's content with a single short-answer question.",
+]
+
+function pickDiscussionPrompts(
+  topic: string,
+  focus: string,
+  exclude: string[] = []
+): string[] {
   const hay = `${topic} ${focus}`.toLowerCase()
-  const banks: { kw: string[]; prompts: string[] }[] = [
-    { kw: ["limit", "continuity"], prompts: [
-      "Where does the intuitive notion of a limit break down, and why do we need the formal ε-δ definition?",
-      "Identify a real-world scenario where a function fails one of the three continuity conditions.",
-      "How does L'Hôpital's Rule generalize the limit definition of the derivative?",
-    ]},
-    { kw: ["derivative", "differen", "tangent"], prompts: [
-      "Why is the limit definition of the derivative more powerful than rules like the power rule?",
-      "Compare how a physicist, an economist, and a biologist would interpret the same derivative value.",
-      "Construct a function that is continuous everywhere but not differentiable at one point. Justify.",
-    ]},
-    { kw: ["integral", "integration", "riemann", "ftc"], prompts: [
-      "Explain how Riemann sums make the leap from finite arithmetic to continuous accumulation.",
-      "Why is the Fundamental Theorem of Calculus considered the conceptual bridge of single-variable calculus?",
-      "Sketch a definite integral problem where antiderivative methods fail and numerical methods are required.",
-    ]},
-    { kw: ["series", "sequence", "taylor"], prompts: [
-      "When does a Taylor polynomial give a useful approximation, and when does it break down?",
-      "Compare convergence diagnostics: ratio test vs comparison test — when does each shine?",
-      "Construct a function whose Taylor series converges but converges to the wrong value.",
-    ]},
-    { kw: ["differential equation", "ode", " ode"], prompts: [
-      "When is qualitative analysis (slope fields, equilibria) preferable to solving an ODE analytically?",
-      "Pick a real-world quantity (population, drug concentration, charge) — model it with a separable ODE.",
-      "Why might Euler's method fail catastrophically on a stiff ODE, and what's the practical fix?",
-    ]},
-    { kw: ["distributed training", "parallel", "all-reduce", "parameter server"], prompts: [
-      "Trace a single gradient through ring all-reduce vs a parameter server — where can each fail?",
-      "When would you accept staleness in async SGD over the latency cost of synchronous training?",
-      "Design a 4-node training setup; defend your choice of data vs pipeline vs tensor parallelism.",
-    ]},
-    { kw: ["memory", "zero", "offload", "flashattention"], prompts: [
-      "Estimate optimizer-state memory for a 7B model — when does ZeRO-3 actually pay off?",
-      "Why does FlashAttention beat standard attention without changing the math?",
-      "Trade off: NVMe offloading vs sharding. When is each the right move?",
-    ]},
-    { kw: ["serving", "inference", "batching", "kv cache"], prompts: [
-      "Compare static batching, dynamic batching, and continuous batching — what request distribution favors each?",
-      "How does PagedAttention solve the KV-cache memory fragmentation problem?",
-      "Design a serving system that meets a P99 latency SLA on mixed-length requests.",
-    ]},
-  ]
-  for (const b of banks) {
-    if (b.kw.some((k) => hay.includes(k))) return b.prompts
+  const excludeSet = new Set(exclude)
+  const matched = DISCUSSION_BANKS.find((b) => b.kw.some((k) => hay.includes(k)))
+  const pool = matched ? matched.prompts : GENERIC_PROMPTS
+  const fresh = pool.filter((p) => !excludeSet.has(p))
+  // If the user has already collected most of a bank, reuse the bank
+  // (skipping exclude is best-effort, not blocking).
+  const sourceList = fresh.length >= 3 ? fresh : pool
+  // Fisher-Yates random sample of 3 without replacement.
+  const shuffled = [...sourceList]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
-  // Generic Bloom-style fallback.
-  return [
-    `Compare two approaches to ${topic.toLowerCase() || "this week's material"} — when does one outperform the other?`,
-    `Apply this week's concepts to a real-world problem your students would recognize.`,
-    `Critique a common misconception students bring into this topic. How would you correct it?`,
-  ]
+  return shuffled.slice(0, 3)
 }
 
 interface WeekScheduleProps {
@@ -505,15 +602,17 @@ export function WeekSchedule({
                           onClick={(e) => {
                             e.stopPropagation()
                             if (!onUpdateWeek) return
+                            const existing = week.discussionQuestions ?? []
+                            // Pass current prompts as exclude so each click
+                            // pulls fresh ones from the bank.
                             const prompts = pickDiscussionPrompts(
                               week.conceptsIntroduced[0] ?? "",
-                              week.inClassFocus ?? ""
+                              week.inClassFocus ?? "",
+                              existing
                             )
                             const merged = [
-                              ...(week.discussionQuestions ?? []),
-                              ...prompts.filter(
-                                (p) => !(week.discussionQuestions ?? []).includes(p)
-                              ),
+                              ...existing,
+                              ...prompts.filter((p) => !existing.includes(p)),
                             ]
                             onUpdateWeek(week.week, { discussionQuestions: merged })
                             toast.success(`Added 3 discussion prompts to Week ${week.week}`)
