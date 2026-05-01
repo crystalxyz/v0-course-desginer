@@ -1,27 +1,63 @@
 "use client"
 
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { BookOpen, FileText, Calendar, Tag } from "lucide-react"
+import { 
+  BookOpen, 
+  FileText, 
+  Calendar, 
+  Tag, 
+  AlertTriangle, 
+  Plus, 
+  X, 
+  Target,
+  CheckCircle2,
+  Sparkles,
+  Link as LinkIcon,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { CourseMaterial, CourseWeek, HoverState } from "@/lib/course-types"
+import type { CourseMaterial, CourseWeek, HoverState, OutcomeCoverage } from "@/lib/course-types"
 
 interface MaterialsPanelProps {
   materials: CourseMaterial[]
   weeks: CourseWeek[]
+  outcomes?: OutcomeCoverage[]
   hoverState?: HoverState
   onHoverChange?: (state: HoverState) => void
   onMaterialClick?: (materialId: string) => void
 }
 
+// Mock suggested materials for missing coverage
+const suggestedMaterials = [
+  {
+    id: "suggested-1",
+    title: "Efficient Large-Scale Language Model Training.pdf",
+    summary: "Covers advanced training strategies not in current materials",
+    reason: "Strengthens coverage of 'Design scalable ML training pipelines'",
+  },
+  {
+    id: "suggested-2", 
+    title: "Production ML Monitoring Best Practices.pdf",
+    summary: "MLOps monitoring patterns and alerting strategies",
+    reason: "Addresses gap in 'Apply MLOps best practices'",
+  },
+]
+
+type FilterType = "all" | "mapped" | "low-relevance" | "suggested"
+
 export function MaterialsPanel({
   materials,
   weeks,
+  outcomes = [],
   hoverState,
   onHoverChange,
   onMaterialClick,
 }: MaterialsPanelProps) {
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all")
+
   // Get weeks that use each material
   const getMaterialWeeks = (materialId: string): number[] => {
     return weeks
@@ -34,6 +70,46 @@ export function MaterialsPanel({
     return material.extractedConcepts || []
   }
 
+  // Compute material health stats
+  const materialHealth = useMemo(() => {
+    const mapped = materials.filter(m => getMaterialWeeks(m.id).length > 0)
+    const unmapped = materials.filter(m => getMaterialWeeks(m.id).length === 0)
+    
+    // Low relevance = no concepts extracted and not used in any week
+    const lowRelevance = materials.filter(m => {
+      const concepts = getMaterialConcepts(m)
+      const weeksUsed = getMaterialWeeks(m.id)
+      return concepts.length === 0 && weeksUsed.length === 0
+    })
+    
+    return {
+      total: materials.length,
+      mapped: mapped.length,
+      lowRelevance: lowRelevance.length,
+      suggested: suggestedMaterials.length,
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [materials, weeks])
+
+  // Filter materials based on active filter
+  const filteredMaterials = useMemo(() => {
+    switch (activeFilter) {
+      case "mapped":
+        return materials.filter(m => getMaterialWeeks(m.id).length > 0)
+      case "low-relevance":
+        return materials.filter(m => {
+          const concepts = getMaterialConcepts(m)
+          const weeksUsed = getMaterialWeeks(m.id)
+          return concepts.length === 0 && weeksUsed.length === 0
+        })
+      case "suggested":
+        return [] // Suggestions are shown separately
+      default:
+        return materials
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [materials, weeks, activeFilter])
+
   const isHighlighted = (materialId: string) => {
     if (!hoverState || hoverState.type === null) return false
     if (hoverState.type === "week") {
@@ -42,7 +118,6 @@ export function MaterialsPanel({
     }
     if (hoverState.type === "concept") {
       const material = materials.find(m => m.id === materialId)
-      // Would need to check if this material covers the hovered concept
       return false
     }
     return hoverState.type === "material" && hoverState.id === materialId
@@ -62,22 +137,25 @@ export function MaterialsPanel({
     reference: "bg-muted text-muted-foreground border-border",
   }
 
-  // Group materials by tag
-  const coreMaterials = materials.filter(m => m.tag === "core")
-  const supplementaryMaterials = materials.filter(m => m.tag === "supplementary")
-  const referenceMaterials = materials.filter(m => m.tag === "reference")
+  const isLowRelevance = (material: CourseMaterial) => {
+    const concepts = getMaterialConcepts(material)
+    const weeksUsed = getMaterialWeeks(material.id)
+    return concepts.length === 0 && weeksUsed.length === 0
+  }
 
   const renderMaterial = (material: CourseMaterial) => {
     const usedInWeeks = getMaterialWeeks(material.id)
     const concepts = getMaterialConcepts(material)
     const highlighted = isHighlighted(material.id)
+    const lowRelevance = isLowRelevance(material)
 
     return (
       <Card
         key={material.id}
         className={cn(
           "border-border transition-all cursor-pointer",
-          highlighted && "ring-2 ring-primary/50 bg-primary/5"
+          highlighted && "ring-2 ring-primary/50 bg-primary/5",
+          lowRelevance && "border-l-2 border-l-amber-500"
         )}
         onMouseEnter={() => handleMouseEnter(material.id)}
         onMouseLeave={handleMouseLeave}
@@ -99,6 +177,17 @@ export function MaterialsPanel({
                   {material.tag}
                 </Badge>
                 <span className="text-[10px] text-muted-foreground">{material.size}</span>
+                
+                {/* Low relevance warning */}
+                {lowRelevance && (
+                  <Badge 
+                    variant="outline" 
+                    className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-200"
+                  >
+                    <AlertTriangle className="h-2.5 w-2.5 mr-1" />
+                    Low relevance
+                  </Badge>
+                )}
               </div>
 
               {/* Weeks used */}
@@ -137,6 +226,20 @@ export function MaterialsPanel({
                   )}
                 </div>
               )}
+
+              {/* Low relevance actions */}
+              {lowRelevance && (
+                <div className="flex gap-2 mt-2 pt-2 border-t border-border">
+                  <Button variant="outline" size="sm" className="h-6 text-[10px]">
+                    <X className="h-2.5 w-2.5 mr-1" />
+                    Drop from course
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-6 text-[10px]">
+                    <LinkIcon className="h-2.5 w-2.5 mr-1" />
+                    Map to outcome
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
@@ -144,31 +247,89 @@ export function MaterialsPanel({
     )
   }
 
+  const renderSuggestedMaterial = (suggestion: typeof suggestedMaterials[0]) => (
+    <Card
+      key={suggestion.id}
+      className="border-border border-dashed bg-accent/5"
+    >
+      <CardContent className="py-3 px-4">
+        <div className="flex items-start gap-3">
+          <Sparkles className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground line-clamp-1 mb-1">
+              {suggestion.title}
+            </p>
+            <p className="text-xs text-muted-foreground mb-1">
+              {suggestion.summary}
+            </p>
+            <p className="text-[10px] text-accent mb-2">
+              {suggestion.reason}
+            </p>
+            <Button variant="outline" size="sm" className="h-6 text-[10px]">
+              <Plus className="h-2.5 w-2.5 mr-1" />
+              Add to course
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
   return (
     <div className="h-full flex flex-col">
-      {/* Summary */}
+      {/* Materials Health Summary */}
       <Card className="border-border mb-4 flex-shrink-0">
         <CardHeader className="py-3 px-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-accent" />
-              Course Materials
+              Materials Health
             </CardTitle>
-            <Badge variant="secondary" className="text-xs">
-              {materials.length} files
-            </Badge>
           </div>
         </CardHeader>
         <CardContent className="pt-0 pb-3 px-4">
-          <div className="flex gap-2">
-            <Badge variant="outline" className={cn("text-[10px]", tagColors.core)}>
-              {coreMaterials.length} core
+          <div className="flex flex-wrap gap-1.5">
+            <Badge 
+              variant={activeFilter === "all" ? "default" : "outline"}
+              className="text-[10px] cursor-pointer hover:bg-primary/10"
+              onClick={() => setActiveFilter("all")}
+            >
+              {materialHealth.total} materials
             </Badge>
-            <Badge variant="outline" className={cn("text-[10px]", tagColors.supplementary)}>
-              {supplementaryMaterials.length} supplementary
+            <Badge 
+              variant={activeFilter === "mapped" ? "default" : "outline"}
+              className={cn(
+                "text-[10px] cursor-pointer hover:bg-accent/10",
+                activeFilter !== "mapped" && "bg-accent/10 text-accent border-accent/20"
+              )}
+              onClick={() => setActiveFilter("mapped")}
+            >
+              <CheckCircle2 className="h-2.5 w-2.5 mr-1" />
+              {materialHealth.mapped} mapped
             </Badge>
-            <Badge variant="outline" className={cn("text-[10px]", tagColors.reference)}>
-              {referenceMaterials.length} reference
+            {materialHealth.lowRelevance > 0 && (
+              <Badge 
+                variant={activeFilter === "low-relevance" ? "default" : "outline"}
+                className={cn(
+                  "text-[10px] cursor-pointer hover:bg-amber-500/20",
+                  activeFilter !== "low-relevance" && "bg-amber-500/10 text-amber-600 border-amber-200"
+                )}
+                onClick={() => setActiveFilter("low-relevance")}
+              >
+                <AlertTriangle className="h-2.5 w-2.5 mr-1" />
+                {materialHealth.lowRelevance} low relevance
+              </Badge>
+            )}
+            <Badge 
+              variant={activeFilter === "suggested" ? "default" : "outline"}
+              className={cn(
+                "text-[10px] cursor-pointer hover:bg-primary/10",
+                activeFilter !== "suggested" && "bg-primary/10 text-primary border-primary/20"
+              )}
+              onClick={() => setActiveFilter("suggested")}
+            >
+              <Sparkles className="h-2.5 w-2.5 mr-1" />
+              {materialHealth.suggested} suggested
             </Badge>
           </div>
         </CardContent>
@@ -176,40 +337,33 @@ export function MaterialsPanel({
 
       {/* Materials List */}
       <ScrollArea className="flex-1">
-        <div className="space-y-4 pr-2">
-          {/* Core */}
-          {coreMaterials.length > 0 && (
-            <div>
+        <div className="space-y-2 pr-2">
+          {activeFilter === "suggested" ? (
+            <>
               <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                <Tag className="h-3 w-3" /> Core Materials
+                <Sparkles className="h-3 w-3" /> Suggested Additions
               </p>
-              <div className="space-y-2">
-                {coreMaterials.map(renderMaterial)}
-              </div>
-            </div>
+              {suggestedMaterials.map(renderSuggestedMaterial)}
+            </>
+          ) : (
+            <>
+              {filteredMaterials.length === 0 ? (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  No materials match this filter
+                </div>
+              ) : (
+                filteredMaterials.map(renderMaterial)
+              )}
+            </>
           )}
 
-          {/* Supplementary */}
-          {supplementaryMaterials.length > 0 && (
-            <div>
+          {/* Show suggested additions at bottom when viewing all */}
+          {activeFilter === "all" && suggestedMaterials.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-border">
               <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                <Tag className="h-3 w-3" /> Supplementary
+                <Sparkles className="h-3 w-3" /> Suggested Additions
               </p>
-              <div className="space-y-2">
-                {supplementaryMaterials.map(renderMaterial)}
-              </div>
-            </div>
-          )}
-
-          {/* Reference */}
-          {referenceMaterials.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                <Tag className="h-3 w-3" /> Reference
-              </p>
-              <div className="space-y-2">
-                {referenceMaterials.map(renderMaterial)}
-              </div>
+              {suggestedMaterials.map(renderSuggestedMaterial)}
             </div>
           )}
         </div>

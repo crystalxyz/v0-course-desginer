@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { GraduationCap, ArrowRight, Plus, FileText, BookOpen } from "lucide-react"
+import { GraduationCap, ArrowRight, Plus, BookOpen } from "lucide-react"
 import Link from "next/link"
 
 export default function HomePage() {
@@ -24,20 +24,13 @@ export default function HomePage() {
             <Link href="/new" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               New Course
             </Link>
-            <Link href="/sample" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Sample Course
-            </Link>
+
             <Link href="/docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Docs
             </Link>
           </nav>
           <div className="flex items-center gap-3">
-            <Button asChild variant="outline" size="sm" className="hidden sm:flex">
-              <Link href="/sample">
-                <FileText className="mr-2 h-4 w-4" />
-                See a sample course
-              </Link>
-            </Button>
+
             <Button asChild size="sm">
               <Link href="/new">
                 <Plus className="mr-2 h-4 w-4" />
@@ -64,7 +57,7 @@ export default function HomePage() {
             Upload your reading list. Get a prerequisite-aware schedule, anchored problem sets, and gap warnings — re-paced as your cohort progresses.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center gap-4">
             <Button 
               asChild
               size="lg" 
@@ -75,16 +68,9 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button 
-              asChild
-              variant="outline" 
-              size="lg" 
-              className="min-w-[200px] h-12 text-base font-medium"
-            >
-              <Link href="/sample">
-                See a sample course
-              </Link>
-            </Button>
+            <Link href="/sample" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline">
+              or see a sample course
+            </Link>
           </div>
         </div>
       </main>

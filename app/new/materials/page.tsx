@@ -176,7 +176,7 @@ export default function MaterialsUploadPage() {
 
   const handleContinue = () => {
     localStorage.setItem("currentCourseMaterials", JSON.stringify(materials))
-    router.push("/new/plan")
+    router.push("/new/outline")
   }
 
   return (
@@ -202,24 +202,31 @@ export default function MaterialsUploadPage() {
       {/* Progress */}
       <div className="border-b border-border bg-card/50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-center gap-2 max-w-xl mx-auto">
+          <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto">
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center h-8 w-8 rounded-full bg-accent text-accent-foreground text-sm font-medium">
                 <Check className="h-4 w-4" />
               </div>
               <span className="text-sm font-medium text-foreground hidden sm:block">Setup</span>
             </div>
-            <div className="h-[2px] w-8 sm:w-16 bg-accent" />
+            <div className="h-[2px] w-6 sm:w-10 bg-accent" />
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-medium">
                 2
               </div>
               <span className="text-sm font-medium text-foreground hidden sm:block">Materials</span>
             </div>
-            <div className="h-[2px] w-8 sm:w-16 bg-border" />
+            <div className="h-[2px] w-6 sm:w-10 bg-border" />
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center h-8 w-8 rounded-full bg-secondary text-muted-foreground text-sm font-medium">
                 3
+              </div>
+              <span className="text-sm font-medium text-muted-foreground hidden sm:block">Outline</span>
+            </div>
+            <div className="h-[2px] w-6 sm:w-10 bg-border" />
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center h-8 w-8 rounded-full bg-secondary text-muted-foreground text-sm font-medium">
+                4
               </div>
               <span className="text-sm font-medium text-muted-foreground hidden sm:block">Plan</span>
             </div>
@@ -445,7 +452,7 @@ export default function MaterialsUploadPage() {
               disabled={!allReady}
               className="min-w-[160px]"
             >
-              Generate plan
+              Continue
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>

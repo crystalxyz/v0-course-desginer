@@ -103,9 +103,7 @@ export default function CoursesPage() {
             <Link href="/new" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               New Course
             </Link>
-            <Link href="/sample" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Sample Course
-            </Link>
+
             <Link href="/docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Docs
             </Link>

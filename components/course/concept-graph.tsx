@@ -1,10 +1,11 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useState, useEffect, useRef } from "react"
 import {
   ReactFlow,
   Background,
   Controls,
+  MiniMap,
   useNodesState,
   useEdgesState,
   Node,
@@ -16,12 +17,14 @@ import {
   getBezierPath,
   BaseEdge,
   EdgeLabelRenderer,
+  useReactFlow,
+  ReactFlowProvider,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { AlertTriangle, Layers, Network, BookOpen, Calendar } from "lucide-react"
+import { AlertTriangle, Layers, Network, Maximize2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Concept, CourseMaterial, HoverState } from "@/lib/course-types"
 
@@ -87,11 +90,27 @@ function ConceptNode({
       <div className="flex items-center gap-1.5">
         {data.isGap && <AlertTriangle className="h-3 w-3 text-amber-600" />}
         <span>{data.label}</span>
-        {data.week && !data.isGap && (
-          <span className="text-[10px] opacity-75 ml-1">W{data.week}</span>
-        )}
       </div>
       <Handle type="source" position={Position.Bottom} className="!bg-border !w-2 !h-2" />
+    </div>
+  )
+}
+
+// Lane header node for week labels
+function LaneHeaderNode({ data }: { data: { week: number; topic: string } }) {
+  const colors = weekColors[data.week] || weekColors[1]
+  
+  return (
+    <div className={cn(
+      "px-3 py-2 rounded-lg text-xs font-semibold shadow-sm border-2 min-w-[80px]",
+      colors.bg, colors.border, colors.text
+    )}>
+      <div className="flex flex-col gap-0.5">
+        <span>Week {data.week}</span>
+        {data.topic && (
+          <span className="text-[10px] opacity-80 font-normal truncate max-w-[120px]">{data.topic}</span>
+        )}
+      </div>
     </div>
   )
 }
@@ -154,15 +173,34 @@ function GapEdge({
 
 const nodeTypes = {
   concept: ConceptNode,
+  laneHeader: LaneHeaderNode,
 }
 
 const edgeTypes = {
   gap: GapEdge,
 }
 
-type LayoutMode = "force" | "layered"
+type LayoutMode = "layered" | "force"
 
-export function ConceptGraph({ 
+// Week topics for display
+const weekTopics: Record<number, string> = {
+  1: "Foundations",
+  2: "Gradient Comm",
+  3: "Ring/PS",
+  4: "Sync/Async",
+  5: "Memory Opt",
+  6: "ZeRO",
+  7: "Review",
+  8: "Serving",
+  9: "Inference Opt",
+  10: "Features",
+  11: "Pipelines",
+  12: "GPU Deep Dive",
+  13: "Projects",
+  14: "Wrap-up",
+}
+
+function ConceptGraphInner({ 
   concepts, 
   materials = [],
   currentWeek, 
@@ -174,8 +212,9 @@ export function ConceptGraph({
 }: ConceptGraphProps) {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("layered")
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
+  const reactFlowInstance = useReactFlow()
 
-  const { nodes, edges } = useMemo(() => {
+  const { nodes, edges, gapEdgeCount, upwardEdgeCount } = useMemo(() => {
     const nodeList: Node[] = []
     const edgeList: Edge[] = []
     const conceptMap = new Map(concepts.map((c) => [c.id, c]))
@@ -183,17 +222,14 @@ export function ConceptGraph({
 
     // Determine which concepts to highlight based on hover state
     const highlightedConcepts = new Set<string>()
-    const highlightedMaterials = new Set<string>()
     
     if (hoverState?.type === "material" && hoverState.id) {
-      // Highlight concepts from this material
       concepts.forEach(c => {
         if (c.coveredBy.includes(hoverState.id!)) {
           highlightedConcepts.add(c.id)
         }
       })
     } else if (hoverState?.type === "week" && hoverState.weekNumber) {
-      // Highlight concepts introduced in this week
       concepts.forEach(c => {
         if (c.weekIntroduced === hoverState.weekNumber) {
           highlightedConcepts.add(c.id)
@@ -201,8 +237,9 @@ export function ConceptGraph({
       })
     }
 
+    // VERTICAL LAYOUT: weeks stacked top-to-bottom
     if (layoutMode === "layered") {
-      // Group concepts by week for layered layout
+      // Group concepts by week
       const weekGroups: Map<number, Concept[]> = new Map()
       concepts.forEach((concept) => {
         const week = concept.weekIntroduced || 0
@@ -210,14 +247,31 @@ export function ConceptGraph({
         weekGroups.get(week)!.push(concept)
       })
 
-      // Sort weeks and create columns
+      // Sort weeks and create rows (top to bottom)
       const sortedWeeks = Array.from(weekGroups.keys()).sort((a, b) => a - b)
-      const columnWidth = 160
-      const rowHeight = 70
+      const laneHeight = 80 // Height for each week row
+      const nodeSpacing = 140 // Horizontal spacing between concepts
+      const laneHeaderWidth = 100 // Width for lane header
 
-      sortedWeeks.forEach((week, colIndex) => {
+      sortedWeeks.forEach((week, rowIndex) => {
+        const y = rowIndex * laneHeight + 40
+        
+        // Add lane header (sticky week label on left)
+        nodeList.push({
+          id: `lane-header-${week}`,
+          type: "laneHeader",
+          position: { x: 0, y: y - 8 },
+          data: {
+            week,
+            topic: weekTopics[week] || "",
+          },
+          draggable: false,
+          selectable: false,
+        })
+
+        // Add concept nodes in this week's lane
         const conceptsInWeek = weekGroups.get(week)!
-        conceptsInWeek.forEach((concept, rowIndex) => {
+        conceptsInWeek.forEach((concept, colIndex) => {
           const isHighlighted = highlightedConcepts.size > 0 && highlightedConcepts.has(concept.id)
           const isDimmed = highlightedConcepts.size > 0 && !highlightedConcepts.has(concept.id)
 
@@ -225,8 +279,8 @@ export function ConceptGraph({
             id: concept.id,
             type: "concept",
             position: { 
-              x: colIndex * columnWidth + 50, 
-              y: rowIndex * rowHeight + 50 
+              x: laneHeaderWidth + 20 + colIndex * nodeSpacing, 
+              y: y
             },
             data: {
               label: concept.name,
@@ -236,13 +290,13 @@ export function ConceptGraph({
               isHighlighted,
               isDimmed,
             },
-            sourcePosition: Position.Right,
-            targetPosition: Position.Left,
+            sourcePosition: Position.Bottom,
+            targetPosition: Position.Top,
           })
         })
       })
     } else {
-      // Force-directed / hierarchical layout
+      // Force-directed layout with y-constraint by week
       const levels = new Map<string, number>()
       const visited = new Set<string>()
 
@@ -269,23 +323,31 @@ export function ConceptGraph({
 
       concepts.forEach((c) => getLevel(c.id))
 
-      // Group by level
-      const levelGroups: Map<number, Concept[]> = new Map()
+      // Group by week for y-banding
+      const weekGroups: Map<number, Concept[]> = new Map()
       concepts.forEach((concept) => {
-        const level = levels.get(concept.id) || 0
-        if (!levelGroups.has(level)) levelGroups.set(level, [])
-        levelGroups.get(level)!.push(concept)
+        const week = concept.weekIntroduced || 0
+        if (!weekGroups.has(week)) weekGroups.set(week, [])
+        weekGroups.get(week)!.push(concept)
       })
 
-      // Position nodes
-      const levelHeight = 100
-      const nodeSpacing = 150
+      const sortedWeeks = Array.from(weekGroups.keys()).sort((a, b) => a - b)
+      const weekYBase: Map<number, number> = new Map()
+      sortedWeeks.forEach((week, index) => {
+        weekYBase.set(week, index * 100 + 50)
+      })
 
-      levelGroups.forEach((conceptsAtLevel, level) => {
-        const totalWidth = (conceptsAtLevel.length - 1) * nodeSpacing
-        conceptsAtLevel.forEach((concept, index) => {
-          const x = index * nodeSpacing - totalWidth / 2 + 300
-          const y = level * levelHeight + 50
+      // Position nodes with y constrained by week
+      const nodeSpacing = 150
+      weekGroups.forEach((conceptsInWeek, week) => {
+        const baseY = weekYBase.get(week) || 0
+        const totalWidth = (conceptsInWeek.length - 1) * nodeSpacing
+        
+        conceptsInWeek.forEach((concept, index) => {
+          const x = index * nodeSpacing - totalWidth / 2 + 400
+          const level = levels.get(concept.id) || 0
+          // Add slight y offset based on dependency level
+          const y = baseY + (level % 2) * 20
           
           const isHighlighted = highlightedConcepts.size > 0 && highlightedConcepts.has(concept.id)
           const isDimmed = highlightedConcepts.size > 0 && !highlightedConcepts.has(concept.id)
@@ -310,13 +372,22 @@ export function ConceptGraph({
     }
 
     // Create edges with gap detection
+    let gapCount = 0
+    let upwardCount = 0
+    
     concepts.forEach((concept) => {
       concept.dependencies.forEach((dep) => {
         const sourceNode = conceptMap.get(dep) || conceptByName.get(dep)
         if (sourceNode) {
           // Check if this is a gap edge (prerequisite introduced after dependent)
+          // This means a concept references something from a LATER week = amber upward edge
           const isGapEdge = sourceNode.weekIntroduced && concept.weekIntroduced && 
             sourceNode.weekIntroduced > concept.weekIntroduced
+          
+          if (isGapEdge) {
+            gapCount++
+            upwardCount++
+          }
 
           edgeList.push({
             id: `${sourceNode.id}-${concept.id}`,
@@ -344,19 +415,20 @@ export function ConceptGraph({
       })
     })
 
-    return { nodes: nodeList, edges: edgeList }
+    return { nodes: nodeList, edges: edgeList, gapEdgeCount: gapCount, upwardEdgeCount: upwardCount }
   }, [concepts, gapConcepts, layoutMode, hoverState])
 
   const [nodesState, setNodes, onNodesChange] = useNodesState(nodes)
   const [edgesState, setEdges, onEdgesChange] = useEdgesState(edges)
 
   // Update nodes when external data changes
-  useMemo(() => {
+  useEffect(() => {
     setNodes(nodes)
     setEdges(edges)
   }, [nodes, edges, setNodes, setEdges])
 
   const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    if (node.type === "laneHeader") return
     setSelectedNode(node.id)
     const concept = concepts.find(c => c.id === node.id)
     if (concept && onConceptClick) {
@@ -371,6 +443,7 @@ export function ConceptGraph({
   }, [concepts, onEdgeClick])
 
   const handleNodeMouseEnter = useCallback((event: React.MouseEvent, node: Node) => {
+    if (node.type === "laneHeader") return
     if (onHoverChange) {
       onHoverChange({ type: "concept", id: node.id })
     }
@@ -381,6 +454,12 @@ export function ConceptGraph({
       onHoverChange({ type: null, id: null })
     }
   }, [onHoverChange])
+
+  const handleFitView = useCallback(() => {
+    reactFlowInstance.fitView({ padding: 0.2 })
+  }, [reactFlowInstance])
+
+  const showMinimap = concepts.length > 20
 
   return (
     <div className="h-full w-full flex flex-col bg-card rounded-lg border border-border">
@@ -402,32 +481,17 @@ export function ConceptGraph({
           </ToggleGroupItem>
         </ToggleGroup>
         <div className="flex items-center gap-2">
-          {edges.filter(e => e.data?.isGap).length > 0 && (
+          <Button variant="ghost" size="sm" onClick={handleFitView} className="h-7 px-2">
+            <Maximize2 className="h-3 w-3" />
+          </Button>
+          {gapEdgeCount > 0 && (
             <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-200">
               <AlertTriangle className="h-3 w-3 mr-1" />
-              {edges.filter(e => e.data?.isGap).length} gap{edges.filter(e => e.data?.isGap).length > 1 ? "s" : ""}
+              {gapEdgeCount} gap{gapEdgeCount > 1 ? "s" : ""}
             </Badge>
           )}
         </div>
       </div>
-
-      {/* Week Legend (for layered view) */}
-      {layoutMode === "layered" && (
-        <div className="flex items-center gap-1 p-2 border-b border-border overflow-x-auto">
-          <span className="text-[10px] text-muted-foreground mr-1">Weeks:</span>
-          {Array.from(new Set(concepts.map(c => c.weekIntroduced).filter(Boolean))).sort((a, b) => (a || 0) - (b || 0)).slice(0, 12).map(week => {
-            const colors = weekColors[week || 1]
-            return (
-              <div 
-                key={week} 
-                className={cn("h-4 w-4 rounded text-[9px] flex items-center justify-center font-medium", colors.bg, colors.text)}
-              >
-                {week}
-              </div>
-            )
-          })}
-        </div>
-      )}
 
       {/* Graph */}
       <div className="flex-1">
@@ -443,19 +507,37 @@ export function ConceptGraph({
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView
-          fitViewOptions={{ padding: 0.3 }}
-          minZoom={0.3}
+          fitViewOptions={{ padding: 0.2 }}
+          minZoom={0.2}
           maxZoom={1.5}
           proOptions={{ hideAttribution: true }}
           className="bg-card"
+          panOnScroll
+          zoomOnScroll
         >
           <Background color="var(--border)" gap={20} size={1} />
           <Controls
             showInteractive={false}
             className="!bg-card !border-border !shadow-sm"
           />
+          {showMinimap && (
+            <MiniMap 
+              nodeStrokeWidth={3}
+              zoomable
+              pannable
+              className="!bg-card !border-border"
+            />
+          )}
         </ReactFlow>
       </div>
     </div>
+  )
+}
+
+export function ConceptGraph(props: ConceptGraphProps) {
+  return (
+    <ReactFlowProvider>
+      <ConceptGraphInner {...props} />
+    </ReactFlowProvider>
   )
 }

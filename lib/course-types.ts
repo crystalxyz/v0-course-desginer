@@ -129,6 +129,51 @@ export interface SampleCourse {
   plan: CoursePlan
 }
 
+// Outline types for the intermediate step
+export interface OutlineWeek {
+  week: number
+  topic: string
+  description: string
+  pinnedMaterialIds: string[]
+}
+
+export interface CourseOutline {
+  weeks: OutlineWeek[]
+  generatedAt: Date
+}
+
+// Problem set types
+export type QuestionType = "mcq" | "short-answer"
+
+export interface MCQQuestion {
+  id: string
+  type: "mcq"
+  stem: string
+  options: { label: string; text: string }[]
+  correctAnswer: string // "A", "B", "C", or "D"
+  explanation: string
+  sourceMaterial: string
+  sourcePages?: string
+}
+
+export interface ShortAnswerQuestion {
+  id: string
+  type: "short-answer"
+  stem: string
+  rubricPoints: string[]
+  sourceMaterial: string
+  sourcePages?: string
+}
+
+export type Question = MCQQuestion | ShortAnswerQuestion
+
+export interface ProblemSet {
+  weekNumber: number
+  topic: string
+  questions: Question[]
+  generatedAt: Date
+}
+
 // Hover state for cross-panel highlighting
 export interface HoverState {
   type: "material" | "concept" | "week" | null
