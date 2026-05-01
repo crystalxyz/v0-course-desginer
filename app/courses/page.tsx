@@ -34,6 +34,7 @@ import {
   calculusSampleMaterials,
   calculusSampleConcepts,
 } from "@/lib/optimizer-data"
+import { seedTemplate, type CourseTemplateKey } from "@/lib/templates"
 import type { CourseSettings } from "@/lib/course-types"
 
 interface SavedCourse {
@@ -119,21 +120,11 @@ export default function CoursesPage() {
     setCourses(out)
   }, [])
 
-  const useTemplate = (template: "calculus" | "ml-systems") => {
-    if (template === "calculus") {
-      localStorage.setItem(
-        "currentCourseSettings",
-        JSON.stringify(calculusCourseSettings)
-      )
-      localStorage.setItem(
-        "currentCourseMaterials",
-        JSON.stringify(calculusSampleMaterials)
-      )
-    } else {
-      localStorage.setItem("currentCourseSettings", JSON.stringify(sampleCourseSettings))
-      localStorage.setItem("currentCourseMaterials", JSON.stringify(sampleMaterials))
-    }
-    router.push("/new/plan")
+  const useTemplate = (template: CourseTemplateKey) => {
+    seedTemplate(template)
+    // Drop the user at the start of the wizard with everything pre-filled
+    // so they can step through Setup → Materials → Outline → Plan end-to-end.
+    router.push("/new")
   }
 
   const getLevelLabel = (level: string) => {

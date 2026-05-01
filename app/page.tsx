@@ -4,8 +4,15 @@ import { Button } from "@/components/ui/button"
 import { GraduationCap, ArrowRight, Plus, BookOpen, Upload, ListOrdered, Sparkles } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { seedTemplate } from "@/lib/templates"
 
 export default function HomePage() {
+  const router = useRouter()
+  const startFromTemplate = (template: "calculus" | "ml-systems") => {
+    seedTemplate(template)
+    router.push("/new")
+  }
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -67,9 +74,13 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Link href="/sample?course=ml-systems" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline">
-                or see a sample ML Systems course
-              </Link>
+              <button
+                type="button"
+                onClick={() => startFromTemplate("ml-systems")}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+              >
+                or step through a sample ML Systems course
+              </button>
             </div>
           </div>
         </section>
@@ -268,9 +279,13 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Link href="/sample?course=ml-systems" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline">
-                or see a sample ML Systems course
-              </Link>
+              <button
+                type="button"
+                onClick={() => startFromTemplate("ml-systems")}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+              >
+                or step through a sample ML Systems course
+              </button>
             </div>
           </div>
         </section>

@@ -35,7 +35,24 @@ export default function MaterialsUploadPage() {
   useEffect(() => {
     const stored = localStorage.getItem("currentCourseSettings")
     if (stored) {
-      setCourseSettings(JSON.parse(stored))
+      try {
+        setCourseSettings(JSON.parse(stored))
+      } catch {
+        // ignore
+      }
+    }
+    // If a template seeded materials into localStorage, hydrate them so the
+    // user sees the pre-built reading list instead of an empty drop zone.
+    const storedMaterials = localStorage.getItem("currentCourseMaterials")
+    if (storedMaterials) {
+      try {
+        const parsed = JSON.parse(storedMaterials) as CourseMaterial[]
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMaterials(parsed)
+        }
+      } catch {
+        // ignore
+      }
     }
   }, [])
 

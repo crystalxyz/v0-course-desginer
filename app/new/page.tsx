@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -8,14 +8,14 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { GraduationCap, ArrowRight, ArrowLeft, X } from "lucide-react"
+import { GraduationCap, ArrowRight, ArrowLeft, X, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import type { CourseLevel, AssessmentStyle } from "@/lib/course-types"
+import type { CourseLevel, AssessmentStyle, CourseSettings } from "@/lib/course-types"
 
 export default function NewCoursePage() {
   const router = useRouter()
-  
+
   // Course settings state
   const [title, setTitle] = useState("")
   const [level, setLevel] = useState<CourseLevel | "">("")
@@ -26,6 +26,28 @@ export default function NewCoursePage() {
   const [prerequisiteTags, setPrerequisiteTags] = useState<string[]>([])
   const [learningOutcomes, setLearningOutcomes] = useState("")
   const [assessmentStyle, setAssessmentStyle] = useState<AssessmentStyle | "">("")
+  const [prefilledFromTemplate, setPrefilledFromTemplate] = useState(false)
+
+  // Pre-fill from any template seeded into localStorage by /courses 'Use
+  // template' or the landing-page 'see a sample' link.
+  useEffect(() => {
+    const stored = localStorage.getItem("currentCourseSettings")
+    if (!stored) return
+    try {
+      const s = JSON.parse(stored) as CourseSettings
+      if (s.title) setTitle(s.title)
+      if (s.level) setLevel(s.level)
+      if (s.weeks) setWeeks(String(s.weeks))
+      if (s.hoursPerWeek) setHoursPerWeek(String(s.hoursPerWeek))
+      if (s.studentBackground) setStudentBackground(s.studentBackground)
+      if (Array.isArray(s.prerequisiteTags)) setPrerequisiteTags(s.prerequisiteTags)
+      if (s.learningOutcomes) setLearningOutcomes(s.learningOutcomes)
+      if (s.assessmentStyle) setAssessmentStyle(s.assessmentStyle)
+      if (s.title && s.level && s.weeks) setPrefilledFromTemplate(true)
+    } catch {
+      // ignore malformed localStorage
+    }
+  }, [])
 
   const handleAddPrerequisite = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && prerequisiteInput.trim()) {
@@ -126,6 +148,20 @@ export default function NewCoursePage() {
               Tell us about your course. This helps us generate a coherent schedule.
             </p>
           </div>
+
+          {prefilledFromTemplate && (
+            <div className="mb-6 rounded-lg border border-accent/20 bg-accent/[0.04] px-4 py-2.5 flex items-start gap-3 text-xs">
+              <Sparkles className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
+              <div className="flex-1 leading-relaxed">
+                <span className="font-medium text-foreground">Prefilled from template.</span>{" "}
+                <span className="text-muted-foreground">
+                  Edit any field to make this course your own, or just hit{" "}
+                  <span className="font-medium text-foreground">Continue</span> to step through
+                  the rest of the wizard with example data.
+                </span>
+              </div>
+            </div>
+          )}
 
           <Card className="border-border">
             <CardContent className="pt-6 space-y-6">
