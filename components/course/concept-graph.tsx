@@ -263,6 +263,20 @@ function InnerConceptGraph({
     [concepts, onConceptClick]
   )
 
+  if (concepts.length === 0) {
+    return (
+      <Card className="h-full flex flex-col items-center justify-center p-8 text-center">
+        <p className="text-sm font-medium text-foreground mb-1">
+          No concepts to graph yet
+        </p>
+        <p className="text-xs text-muted-foreground max-w-xs">
+          Concepts appear once the optimizer extracts knowledge components from
+          your materials.
+        </p>
+      </Card>
+    )
+  }
+
   return (
     <Card className="h-full overflow-hidden p-0 relative">
       <ReactFlow

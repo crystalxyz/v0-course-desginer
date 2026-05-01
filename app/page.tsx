@@ -331,8 +331,9 @@ export default function HomePage() {
               </div>
               <span className="text-sm font-medium text-foreground">Course Designer</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Design coherent courses from the papers you want to teach.
+            <p className="text-xs text-muted-foreground text-center md:text-right">
+              Built with Next.js · Concept structure powered by the open-source
+              learning-path-optimizer.
             </p>
           </div>
         </div>

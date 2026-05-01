@@ -148,6 +148,12 @@ function LoginInner() {
             </div>
           </CardContent>
         </Card>
+
+        <p className="text-[11px] text-muted-foreground/70 text-center mt-6 max-w-md leading-relaxed">
+          The demo workspace is shared and doesn't require credentials —
+          choose it for the fastest preview. Magic-link sign-in becomes
+          available once Supabase env vars are configured.
+        </p>
       </main>
     </div>
   )

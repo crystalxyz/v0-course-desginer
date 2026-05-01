@@ -16,6 +16,7 @@ import {
   Star,
   Network,
   Sigma,
+  Sparkles,
   CheckCircle2,
   CircleDashed,
   PenLine,
@@ -196,6 +197,20 @@ export default function CoursesPage() {
 
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4 max-w-5xl">
+          {/* Demo-mode banner — subtle, not popping out */}
+          <div className="mb-6 rounded-lg border border-accent/20 bg-accent/[0.04] px-4 py-2.5 flex items-start gap-3 text-xs">
+            <Sparkles className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
+            <div className="flex-1 leading-relaxed">
+              <span className="font-medium text-foreground">Demo workspace.</span>{" "}
+              <span className="text-muted-foreground">
+                You're signed in as the shared demo user. The three courses below
+                are pre-seeded; anything you create persists in your browser. Hit{" "}
+                <span className="font-medium text-foreground">Log out</span> to
+                start over.
+              </span>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-2xl font-semibold text-foreground mb-1">Your Courses</h1>
