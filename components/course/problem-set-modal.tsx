@@ -22,6 +22,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import type { ProblemSet, Question, MCQQuestion, ShortAnswerQuestion } from "@/lib/course-types"
 
 interface ProblemSetModalProps {
@@ -291,6 +292,75 @@ export function ProblemSetModal({
     URL.revokeObjectURL(url)
   }
 
+  const handleExportQTI = () => {
+    if (!problemSet) return
+
+    const escapeXml = (s: string) =>
+      s
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;")
+
+    const items = problemSet.questions
+      .map((q, i) => {
+        const ident = `q_${weekNumber}_${i + 1}`
+        if (q.type === "mcq") {
+          const mcq = q as MCQQuestion
+          const responses = mcq.options
+            .map(
+              (opt) =>
+                `              <response_label ident="${opt.label}"><material><mattext texttype="text/plain">${escapeXml(opt.text)}</mattext></material></response_label>`
+            )
+            .join("\n")
+          return `    <item ident="${ident}" title="Question ${i + 1}">
+      <itemmetadata><qtimetadata><qtimetadatafield><fieldlabel>question_type</fieldlabel><fieldentry>multiple_choice_question</fieldentry></qtimetadatafield></qtimetadata></itemmetadata>
+      <presentation>
+        <material><mattext texttype="text/plain">${escapeXml(mcq.stem)}</mattext></material>
+        <response_lid ident="response1" rcardinality="Single">
+          <render_choice>
+${responses}
+          </render_choice>
+        </response_lid>
+      </presentation>
+      <resprocessing>
+        <respcondition continue="No"><conditionvar><varequal respident="response1">${mcq.correctAnswer}</varequal></conditionvar><setvar action="Set" varname="SCORE">100</setvar></respcondition>
+      </resprocessing>
+    </item>`
+        }
+        const sa = q as ShortAnswerQuestion
+        return `    <item ident="${ident}" title="Question ${i + 1}">
+      <itemmetadata><qtimetadata><qtimetadatafield><fieldlabel>question_type</fieldlabel><fieldentry>short_answer_question</fieldentry></qtimetadatafield></qtimetadata></itemmetadata>
+      <presentation>
+        <material><mattext texttype="text/plain">${escapeXml(sa.stem)}</mattext></material>
+        <response_str ident="response1" rcardinality="Single"><render_fib><response_label ident="answer1" rshuffle="No"/></render_fib></response_str>
+      </presentation>
+    </item>`
+      })
+      .join("\n")
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2">
+  <assessment ident="week_${weekNumber}_assessment" title="Week ${weekNumber}: ${escapeXml(topic)}">
+    <section ident="root_section">
+${items}
+    </section>
+  </assessment>
+</questestinterop>
+`
+    const blob = new Blob([xml], { type: "application/xml" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `week-${weekNumber}-problem-set.qti.xml`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success("Exported as Canvas QTI", {
+      description: `${problemSet.questions.length} questions packaged as QTI 1.2 XML.`,
+    })
+  }
+
   const mcqCount = problemSet?.questions.filter((q) => q.type === "mcq").length || 0
   const shortAnswerCount = problemSet?.questions.filter((q) => q.type === "short-answer").length || 0
 
@@ -334,8 +404,10 @@ export function ProblemSetModal({
             <Button
               variant="outline"
               size="sm"
+              onClick={handleExportQTI}
               disabled={!problemSet || isLoading}
             >
+              <Download className="h-4 w-4 mr-2" />
               Export as Canvas QTI
             </Button>
           </div>

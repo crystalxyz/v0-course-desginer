@@ -39,8 +39,7 @@ type CourseKey = "ml-systems" | "calculus"
 
 const COURSE_BLURB: Record<CourseKey, string> = {
   "ml-systems": "Pre-built graduate ML Systems course (14 weeks)",
-  calculus:
-    "Calculus I — generated from real Learning-Path-Optimizer outputs (23 KCs across 8 chapters)",
+  calculus: "Pre-built intro Calculus course (14 weeks)",
 }
 
 function SampleCourseInner() {
